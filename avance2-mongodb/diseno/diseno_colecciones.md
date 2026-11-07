@@ -244,3 +244,66 @@ VIP necesita servicio a la silla. En una tabla relacional serían columnas casi 
 ```
 
 ---
+
+## 4. Colección `resenas_peliculas`
+
+**Contenido:** texto libre, calificación, fecha y respuesta de la empresa.
+**Por qué MongoDB:** volumen alto (cada espectador puede escribir muchas) y esquema poco uniforme
+(unas tienen respuesta, etiquetas o votos y otras no).
+**Cantidad:** 30 documentos.
+
+| Campo | Tipo | Oblig. | Embebido / Referenciado | Conexión con PostgreSQL |
+| --- | --- | --- | --- | --- |
+| `id_venta` | int (único) | Sí | **Referencia** | `ventas.id_venta` (prueba que compró la boleta) |
+| `id_espectador` | int | Sí | **Referencia** | `espectadores.id_espectador` |
+| `id_funcion` | int | Sí | **Referencia** | `funciones.id_funcion` |
+| `id_pelicula` | int | Sí | Referencia | `fichas_tecnicas_peliculas.id_pelicula` |
+| `titulo_pelicula` | string | Sí | — | `funciones.titulo_pelicula` |
+| `calificacion` | int de 1 a 5 | Sí | — | — |
+| `texto` | string | Sí | — | — |
+| `fecha_resena` | date | Sí | — | Posterior a `funciones.fecha_hora_fin` |
+| `estado` | string: `PUBLICADA`, `OCULTA`, `EN_REVISION` | Sí | — | — |
+| `etiquetas` | array de string | No | Embebido | — |
+| `votos_utiles` | int | No | — | — |
+| `respuesta_empresa` | objeto `{id_staff, texto, fecha}` | No | **Embebido** | `staff.id_staff` (administrador 1 o 2) |
+
+**Justificación de embebido vs. referenciado**
+
+- **Colección aparte (no embebida en la ficha):** las reseñas crecen sin límite. Si se guardaran dentro de
+  la ficha técnica, el documento crecería indefinidamente hacia el límite de 16 MB de MongoDB y cada nueva
+  reseña reescribiría la ficha completa. Además se consultan por separado (por película, por calificación).
+- **`id_venta`, `id_espectador`, `id_funcion` referenciados:** son datos de PostgreSQL. La referencia a la
+  venta asegura que solo opina quien compró.
+- **`respuesta_empresa` embebida:** es una sola por reseña, opcional, y solo tiene sentido junto a ella.
+
+**Reglas de datos**
+
+- Solo se reseñan **ventas PAGADAS de funciones FINALIZADAS: `id_venta` 1 a 34**. La 35 está ANULADA y
+  las 36–45 son de funciones que aún no ocurren.
+- Una reseña por venta. El `id_espectador` y el `id_funcion` deben ser los de esa venta.
+- `fecha_resena` posterior a la función; `respuesta_empresa.fecha` posterior a la reseña.
+- Variar calificaciones (no todas 4 o 5) para que las consultas den resultados interesantes.
+
+**Ejemplo** (venta 21: espectador 23, función 9)
+
+```javascript
+{
+  id_venta: 21,
+  id_espectador: 23,
+  id_funcion: 9,
+  id_pelicula: 9,
+  titulo_pelicula: "Código Aurora",
+  calificacion: 4,
+  texto: "Muy buenos efectos en 3D, aunque el final se sintió apresurado.",
+  fecha_resena: ISODate("2026-10-04T10:20:00-05:00"),
+  estado: "PUBLICADA",
+  etiquetas: ["efectos", "3D"],
+  respuesta_empresa: {
+    id_staff: 1,
+    texto: "¡Gracias, Gabriela! Nos alegra que disfrutaras la experiencia en sala VIP.",
+    fecha: ISODate("2026-10-05T09:00:00-05:00")
+  }
+}
+```
+
+---

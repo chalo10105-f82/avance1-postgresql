@@ -307,3 +307,113 @@ VIP necesita servicio a la silla. En una tabla relacional serían columnas casi 
 ```
 
 ---
+
+## 5. Colección `reportes_incidentes`
+
+**Contenido:** fallas técnicas, quejas de servicio e incidentes de seguridad.
+**Por qué MongoDB:** cada tipo de incidente necesita campos distintos. Una falla técnica registra el
+equipo y los minutos de interrupción; una queja registra el espectador y la compensación; un incidente de
+seguridad registra las personas involucradas y si se llamó a la policía.
+**Cantidad:** 30 documentos (sugerido: 10 de cada tipo).
+
+**Campos comunes a todos los tipos**
+
+| Campo | Tipo | Oblig. | Embebido / Referenciado | Conexión con PostgreSQL |
+| --- | --- | --- | --- | --- |
+| `codigo` | string (único), ej. `INC-2026-001` | Sí | — | — |
+| `tipo_incidente` | string: `FALLA_TECNICA`, `QUEJA_SERVICIO`, `SEGURIDAD` | Sí | — | — |
+| `fecha_hora` | date | Sí | — | Dentro del horario de la función |
+| `id_funcion` | int | No (puede ocurrir fuera de una función) | **Referencia** | `funciones.id_funcion` |
+| `id_sala` | int | Sí (lo necesita el panel de incidentes por sala de la Entrega Final) | **Referencia** | `salas.id_sala` (la sala de esa función) |
+| `id_staff_reporta` | int | Sí | **Referencia** | `staff.id_staff` |
+| `prioridad` | string: `BAJA`, `MEDIA`, `ALTA`, `CRITICA` | Sí | — | — |
+| `estado` | string: `ABIERTO`, `EN_PROCESO`, `CERRADO` | Sí | — | — |
+| `descripcion` | string | Sí | — | — |
+| `detalle` | objeto (cambia según el tipo) | Sí | **Embebido** | — |
+| `seguimiento` | array de `{fecha, id_staff, accion}` | No | **Embebido** | `staff.id_staff` |
+
+**Campos de `detalle` según el tipo**
+
+| `tipo_incidente` | Campos obligatorios de `detalle` | Opcionales | Quién reporta (cargo) |
+| --- | --- | --- | --- |
+| `FALLA_TECNICA` | `equipo` (`PROYECTOR`, `SONIDO`, `PANTALLA`, `CLIMATIZACION`, `ILUMINACION`), `minutos_interrupcion` (int) | `requirio_reprogramacion` (bool), `repuesto` | Proyeccionista de esa sala (23–27) |
+| `QUEJA_SERVICIO` | `area` (`TAQUILLA`, `DULCERIA`, `SALA`, `ASEO`), `motivo` | `id_espectador`, `id_venta`, `compensacion` `{tipo, valor}` | Encargado de sala (13–17), taquillero (3–7) o dulcería (8–11) |
+| `SEGURIDAD` | `subtipo` (`ROBO`, `ALTERCADO`, `EMERGENCIA_MEDICA`, `EVACUACION`, `GRABACION_ILEGAL`), `autoridades_notificadas` (bool) | `personas_involucradas` (int), `acciones_tomadas` (array) | Seguridad (28 mañana, 29 tarde, 30 noche) |
+
+**Justificación de embebido vs. referenciado**
+
+- **`detalle` embebido:** es justamente lo que varía entre tipos y solo pertenece a ese reporte.
+- **`seguimiento` embebido:** cada reporte tiene pocas acciones (2 a 5), se leen siempre con el reporte y
+  terminan cuando el incidente se cierra (crecimiento acotado). Además, al cerrar un incidente se cambia
+  `estado` y se agrega la acción final en un solo `updateOne` (`$set` + `$push`): ACID a nivel de documento.
+- **Colección aparte:** estructura variable y alto volumen; se consultan por tipo, por sala y por fecha.
+- **`id_funcion`, `id_sala`, `id_staff_reporta`, `id_espectador`, `id_venta` referenciados:** son datos de PostgreSQL.
+
+**Reglas de datos**
+
+- Usar funciones que ya ocurrieron (1–15). Si se pone `id_funcion`, el `id_sala` debe ser la sala de esa función.
+- El cargo de quien reporta debe ser coherente con el tipo (tabla de arriba). No usar el `id_staff` 12 (retirado).
+- En quejas con `id_venta`, el `id_espectador` debe ser el de esa venta.
+
+**Ejemplos (uno de cada tipo)**
+
+```javascript
+// Falla técnica — función 11, sala 4 Ceiba, proyeccionista 26
+{
+  codigo: "INC-2026-001",
+  tipo_incidente: "FALLA_TECNICA",
+  fecha_hora: ISODate("2026-10-01T21:40:00-05:00"),
+  id_funcion: 11,
+  id_sala: 4,
+  id_staff_reporta: 26,
+  prioridad: "ALTA",
+  estado: "CERRADO",
+  descripcion: "El proyector se apagó por sobrecalentamiento a mitad de la función.",
+  detalle: { equipo: "PROYECTOR", minutos_interrupcion: 12, requirio_reprogramacion: false },
+  seguimiento: [
+    { fecha: ISODate("2026-10-01T21:45:00-05:00"), id_staff: 26, accion: "Reinicio del proyector" },
+    { fecha: ISODate("2026-10-02T10:00:00-05:00"), id_staff: 1,  accion: "Se programa mantenimiento preventivo" }
+  ]
+}
+
+// Queja de servicio — función 8, venta 18 (espectador 12)
+{
+  codigo: "INC-2026-002",
+  tipo_incidente: "QUEJA_SERVICIO",
+  fecha_hora: ISODate("2026-10-02T20:50:00-05:00"),
+  id_funcion: 8,
+  id_sala: 3,
+  id_staff_reporta: 15,
+  prioridad: "MEDIA",
+  estado: "CERRADO",
+  descripcion: "El pedido de comida a la silla llegó después de iniciada la película.",
+  detalle: {
+    area: "SALA",
+    motivo: "Demora en el servicio VIP",
+    id_espectador: 12,
+    id_venta: 18,
+    compensacion: { tipo: "BONO_DULCERIA", valor: 15000 }
+  }
+}
+
+// Seguridad — función 2, sala 1 Roble, seguridad turno noche
+{
+  codigo: "INC-2026-003",
+  tipo_incidente: "SEGURIDAD",
+  fecha_hora: ISODate("2026-09-27T19:35:00-05:00"),
+  id_funcion: 2,
+  id_sala: 1,
+  id_staff_reporta: 30,
+  prioridad: "ALTA",
+  estado: "CERRADO",
+  descripcion: "Un asistente grababa la película con el celular.",
+  detalle: {
+    subtipo: "GRABACION_ILEGAL",
+    autoridades_notificadas: false,
+    personas_involucradas: 1,
+    acciones_tomadas: ["Se pidió borrar el video", "Se acompañó a la persona fuera de la sala"]
+  }
+}
+```
+
+---

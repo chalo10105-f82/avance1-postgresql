@@ -168,3 +168,79 @@ obligaría a crear varias tablas auxiliares o columnas casi siempre vacías.
 
 ---
 
+## 3. Colección `requisitos_proyeccion`
+
+**Contenido:** requerimientos técnicos de cada función especial (3D, subtitulada, sala VIP, familiar).
+**Por qué MongoDB:** los requisitos cambian por completo según el formato. Una función 3D necesita gafas
+y calibración del proyector; una subtitulada necesita archivo de subtítulos y sincronización; una función
+VIP necesita servicio a la silla. En una tabla relacional serían columnas casi siempre vacías.
+**Cantidad:** 1 documento por función, excepto la 16 (cancelada) → 31 documentos posibles (mínimo 30).
+
+> **Nota:** las salas de Bosque Cinema son 2D, 3D y VIP. **No hay IMAX ni Dolby Atmos**, así que no se
+> usan requisitos de esos formatos: contradirían los datos de PostgreSQL.
+
+| Campo | Tipo | Oblig. | Embebido / Referenciado | Conexión con PostgreSQL |
+| --- | --- | --- | --- | --- |
+| `id_funcion` | int (único) | Sí | **Referencia** | `funciones.id_funcion` |
+| `id_sala` | int | Sí | **Referencia** | `salas.id_sala` (la sala real de esa función) |
+| `caracteristicas_especiales` | array de string: `3D`, `SUBTITULADA`, `SALA_VIP`, `FUNCION_FAMILIAR` | Sí | Embebido | Se deduce de `funciones.formato`, `version_idioma` y `id_sala` |
+| `requisitos` | array de objetos | Sí | **Embebido** | — |
+| `requisitos[].categoria` | string: `PROYECCION`, `AUDIO`, `SUBTITULOS`, `SALA`, `ATENCION` | Sí | — | — |
+| `requisitos[].descripcion` | string | Sí | — | — |
+| `requisitos[].…` | campos libres según la categoría | No | — | Ej.: `cantidad`, `nivel_db`, `archivo`, `idioma` |
+| `personal_asignado` | array de `{id_staff, cargo}` | Sí | Referencia | `staff.id_staff` (cargo y sala deben coincidir) |
+| `verificacion` | objeto `{id_staff, fecha, aprobado, observaciones}` | No | **Embebido** | `staff.id_staff` |
+
+**Cómo asignar `caracteristicas_especiales`**
+
+- `3D`: funciones con formato 3D (4, 5, 6, 9, 13, 14, 21, 22, 23, 26, 30, 31, 32).
+- `SUBTITULADA`: funciones con versión subtitulada.
+- `SALA_VIP`: funciones en la sala 3 Guayacán (7, 8, 9, 24, 25, 26).
+- `FUNCION_FAMILIAR`: funciones clasificación T o +7 dobladas (volumen moderado, luz tenue de seguridad).
+
+**Justificación de embebido vs. referenciado**
+
+- **Colección aparte (no embebida en la ficha de la película):** los requisitos son de cada función, no de
+  la película, y los consultan equipos distintos (proyección, encargados de sala) por su cuenta.
+- **`requisitos` embebido:** son la razón de ser del documento, se leen siempre juntos y son pocos por función.
+- **`id_funcion`, `id_sala` y `id_staff` referenciados:** esos datos viven en PostgreSQL y cambian allá
+  (por ejemplo, si una función se cancela). Copiarlos aquí generaría inconsistencias.
+- **`verificacion` embebida:** es una sola por función y no tiene sentido fuera de ella.
+
+**Personal por sala (de la tabla `staff`)**
+
+| Sala | Encargado | Aseo | Proyeccionista |
+| --- | --- | --- | --- |
+| 1 Roble (2D) | 13 | 18 | 23 |
+| 2 Cedro (3D) | 14 | 19 | 24 |
+| 3 Guayacán (VIP) | 15 | 20 | 25 |
+| 4 Ceiba (2D) | 16 | 21 | 26 |
+| 5 Sauce (3D) | 17 | 22 | 27 |
+
+**Ejemplo**
+
+```javascript
+{
+  id_funcion: 9,
+  id_sala: 3,
+  caracteristicas_especiales: ["3D", "SUBTITULADA", "SALA_VIP"],
+  requisitos: [
+    { categoria: "PROYECCION", descripcion: "Proyector en modo estereoscópico calibrado", brillo_min_lumenes: 14000 },
+    { categoria: "SALA", descripcion: "Gafas 3D desinfectadas", cantidad: 40 },
+    { categoria: "SUBTITULOS", descripcion: "Archivo de subtítulos sincronizado", idioma: "Español", archivo: "codigo_aurora_es.srt" },
+    { categoria: "ATENCION", descripcion: "Servicio de comida a la silla durante la función" }
+  ],
+  personal_asignado: [
+    { id_staff: 25, cargo: "PROYECCIONISTA" },
+    { id_staff: 15, cargo: "ENCARGADO_SALA" }
+  ],
+  verificacion: {
+    id_staff: 25,
+    fecha: ISODate("2026-10-03T18:15:00-05:00"),
+    aprobado: true,
+    observaciones: "Calibración 3D sin novedades"
+  }
+}
+```
+
+---

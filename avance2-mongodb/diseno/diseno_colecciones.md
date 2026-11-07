@@ -417,3 +417,99 @@ seguridad registra las personas involucradas y si se llamó a la policía.
 ```
 
 ---
+
+## 6. Resumen de la conexión con PostgreSQL
+
+| Colección MongoDB | Campo compartido | Tabla.columna en PostgreSQL |
+| --- | --- | --- |
+| `fichas_tecnicas_peliculas` | `titulo_pelicula` | `funciones.titulo_pelicula` |
+| `fichas_tecnicas_peliculas` | `elenco[].id_actor_director` | `actores_directores.id_actor_director` |
+| `requisitos_proyeccion` | `id_funcion`, `id_sala` | `funciones.id_funcion`, `salas.id_sala` |
+| `requisitos_proyeccion` | `personal_asignado[].id_staff` | `staff.id_staff` |
+| `resenas_peliculas` | `id_venta`, `id_espectador`, `id_funcion` | `ventas`, `espectadores`, `funciones` |
+| `resenas_peliculas` | `id_pelicula` | `fichas_tecnicas_peliculas.id_pelicula` (MongoDB) |
+| `reportes_incidentes` | `id_funcion`, `id_sala`, `id_staff_reporta` | `funciones`, `salas`, `staff` |
+| `reportes_incidentes` | `detalle.id_espectador`, `detalle.id_venta` | `espectadores`, `ventas` |
+
+Entre dos motores distintos **no existen llaves foráneas**: MongoDB no puede verificar que un `id_funcion`
+exista en PostgreSQL. La integridad la garantiza la aplicación al momento de escribir. Este es uno de los
+puntos que se discuten en la justificación BASE/CAP del informe.
+
+---
+
+## 7. Para David — `01_creacion_colecciones.js`
+
+Crear las 4 colecciones con `db.createCollection(nombre, { validator: { $jsonSchema: {...} } })`.
+Al ser grupo de 5, el `$jsonSchema` va en **las 4 colecciones**.
+
+**Tipos:** ids, cantidades y calificación → `bsonType: "int"`; fechas → `"date"`; textos → `"string"`;
+listas → `"array"`; subdocumentos → `"object"`; banderas → `"bool"`.
+
+| Colección | `required` | Reglas adicionales |
+| --- | --- | --- |
+| `fichas_tecnicas_peliculas` | `id_pelicula`, `titulo_pelicula`, `estado`, `genero`, `sinopsis`, `anio_estreno`, `pais_origen`, `elenco`, `versiones`, `idioma_original`, `idiomas_audio`, `clasificacion_por_pais` | `estado` con `enum`; `elenco` con `minItems: 1` y cada elemento con `required: ["id_actor_director","rol","principal"]` y `rol` en `enum`; `versiones[].formato` en `["2D","3D"]`; `versiones[].duracion_min` con `minimum: 1` |
+| `requisitos_proyeccion` | `id_funcion`, `id_sala`, `caracteristicas_especiales`, `requisitos`, `personal_asignado` | `id_sala` entre 1 y 5; `caracteristicas_especiales` con `enum` en sus elementos; `requisitos` con `minItems: 1`, cada uno con `required: ["categoria","descripcion"]` y `categoria` en `enum` |
+| `resenas_peliculas` | `id_venta`, `id_espectador`, `id_funcion`, `id_pelicula`, `titulo_pelicula`, `calificacion`, `texto`, `fecha_resena`, `estado` | `calificacion` con `minimum: 1` y `maximum: 5`; `texto` con `minLength: 10`; `estado` en `enum`; si existe `respuesta_empresa`, exige `id_staff`, `texto` y `fecha` |
+| `reportes_incidentes` | `codigo`, `tipo_incidente`, `fecha_hora`, `id_sala`, `id_staff_reporta`, `prioridad`, `estado`, `descripcion`, `detalle` | `tipo_incidente`, `prioridad` y `estado` en `enum`; usar **`oneOf`** con tres variantes para que `detalle` exija los campos de su tipo (sección 5) |
+
+**Índices sugeridos**
+
+```javascript
+db.fichas_tecnicas_peliculas.createIndex({ id_pelicula: 1 }, { unique: true });
+db.fichas_tecnicas_peliculas.createIndex({ titulo_pelicula: 1 }, { unique: true });
+db.requisitos_proyeccion.createIndex({ id_funcion: 1 }, { unique: true });
+db.resenas_peliculas.createIndex({ id_venta: 1 }, { unique: true });
+db.resenas_peliculas.createIndex({ id_pelicula: 1, calificacion: -1 });
+db.reportes_incidentes.createIndex({ codigo: 1 }, { unique: true });
+db.reportes_incidentes.createIndex({ tipo_incidente: 1, fecha_hora: -1 });
+```
+
+**Para que el script se pueda ejecutar varias veces:** antes de crear cada colección, borrarla con
+`db.getCollection(nombre).drop()` (sin error si no existe).
+
+---
+
+## 8. Para Gonzalo y Julián — `02_datos_prueba.js`
+
+**Gonzalo:** `fichas_tecnicas_peliculas` y `requisitos_proyeccion`. **Julián:** `resenas_peliculas` y
+`reportes_incidentes`. Como los dos editan el mismo archivo, uno sube primero el archivo con 4 secciones
+marcadas con comentarios (una por colección) y cada uno escribe solo en las suyas, para evitar conflictos.
+
+1. Mínimo **30 documentos por colección** (requisitos puede llegar a 31).
+2. **Todos** los documentos deben pasar el `$jsonSchema` de David; si uno falla, el `insertMany` falla.
+3. Números enteros escritos normal (`5`): mongosh los guarda como `int`. Si el esquema llegara a
+   rechazar un entero, envolverlo en `NumberInt(5)`. Fechas con **`ISODate("AAAA-MM-DDTHH:MM:SS-05:00")`**
+   (hora de Colombia), nunca como texto.
+4. Vaciar con `deleteMany({})` antes de insertar, **no** con `drop()`: `drop()` borraría la validación.
+5. Respetar las **reglas de datos** de cada colección (secciones 2 a 5): ids existentes, sala correcta de
+   cada función, cargo coherente, fechas en orden.
+6. Variar la estructura entre documentos (campos opcionales presentes en unos y ausentes en otros).
+
+---
+
+## 9. Para Juan — `03_consultas.js` (mínimo 6, al menos 3 con aggregation pipeline)
+
+Campos pensados para consultas:
+
+| Idea de consulta | Colección | Campos | Tipo |
+| --- | --- | --- | --- |
+| Promedio de calificación y número de reseñas por película | `resenas_peliculas` | `titulo_pelicula`, `calificacion` | Aggregation (`$group`, `$avg`) |
+| Incidentes por tipo y prioridad | `reportes_incidentes` | `tipo_incidente`, `prioridad` | Aggregation (`$group`) |
+| Minutos de interrupción por sala en fallas técnicas | `reportes_incidentes` | `id_sala`, `detalle.minutos_interrupcion` | Aggregation (`$match`, `$group`, `$sum`) |
+| Películas por clasificación en un país | `fichas_tecnicas_peliculas` | `clasificacion_por_pais` | Aggregation (`$unwind`) |
+| Reseñas negativas (≤ 2) sin respuesta de la empresa | `resenas_peliculas` | `calificacion`, `respuesta_empresa` | `find` con `$exists: false` |
+| Funciones 3D que requieren gafas | `requisitos_proyeccion` | `caracteristicas_especiales`, `requisitos.categoria` | `find` |
+| Reseñas con datos de la ficha de la película | `resenas_peliculas` + `fichas_tecnicas_peliculas` | `id_pelicula` | Aggregation (`$lookup`) |
+
+---
+
+## 10. Preparado para la Entrega Final (integración con Python)
+
+En la Entrega Final un script de Python (`psycopg2` + `pymongo`) combinará los dos motores. Como entre
+ellos no hay JOIN, Python usa los identificadores compartidos de este diseño:
+
+| Patrón (semana 13) | Ejemplo en Bosque Cinema | Identificador que lo hace posible |
+| --- | --- | --- |
+| **Patrón 2 · secuencial dependiente** | Se consulta una función en PostgreSQL y con su `titulo_pelicula` / `id_funcion` se traen de MongoDB la ficha técnica, los requisitos y las reseñas | `titulo_pelicula`, `id_funcion` |
+| **Patrón 3 · agregación combinada** | Panel de incidentes por sala: salas y funciones desde PostgreSQL + conteo de incidentes por `id_sala` desde MongoDB | `id_sala` (por eso es obligatorio en `reportes_incidentes`) |
+| **Patrón 3 · agregación combinada** | Ranking de películas: boletas vendidas (PostgreSQL) × calificación promedio (MongoDB) | `titulo_pelicula` / `id_pelicula` |

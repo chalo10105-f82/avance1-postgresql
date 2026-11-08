@@ -120,3 +120,36 @@ db.createCollection("requisitos_proyeccion", {
     }
   } }
 });
+
+
+// ---------- 3. resenas_peliculas ----------
+db.getCollection("resenas_peliculas").drop();
+db.createCollection("resenas_peliculas", {
+  validator: { $jsonSchema: {
+    bsonType: "object",
+    required: ["id_venta", "id_espectador", "id_funcion", "id_pelicula",
+               "titulo_pelicula", "calificacion", "texto", "fecha_resena", "estado"],
+    properties: {
+      id_venta: { bsonType: "int" },
+      id_espectador: { bsonType: "int" },
+      id_funcion: { bsonType: "int" },
+      id_pelicula: { bsonType: "int" },
+      titulo_pelicula: { bsonType: "string" },
+      calificacion: { bsonType: "int", minimum: 1, maximum: 5 },
+      texto: { bsonType: "string", minLength: 10 },
+      fecha_resena: { bsonType: "date" },
+      estado: { enum: ["PUBLICADA", "OCULTA", "EN_REVISION"] },
+      etiquetas: { bsonType: "array", items: { bsonType: "string" } },
+      votos_utiles: { bsonType: "int" },
+      respuesta_empresa: {
+        bsonType: "object",
+        required: ["id_staff", "texto", "fecha"],
+        properties: {
+          id_staff: { bsonType: "int" },
+          texto: { bsonType: "string" },
+          fecha: { bsonType: "date" }
+        }
+      }
+    }
+  } }
+});

@@ -69,3 +69,54 @@ db.createCollection("fichas_tecnicas_peliculas", {
     }
   } }
 });
+
+
+// ---------- 2. requisitos_proyeccion ----------
+db.getCollection("requisitos_proyeccion").drop();
+db.createCollection("requisitos_proyeccion", {
+  validator: { $jsonSchema: {
+    bsonType: "object",
+    required: ["id_funcion", "id_sala", "caracteristicas_especiales",
+               "requisitos", "personal_asignado"],
+    properties: {
+      id_funcion: { bsonType: "int" },
+      id_sala: { bsonType: "int", minimum: 1, maximum: 5 },
+      caracteristicas_especiales: {
+        bsonType: "array",
+        items: { enum: ["3D", "SUBTITULADA", "SALA_VIP", "FUNCION_FAMILIAR"] }
+      },
+      requisitos: {
+        bsonType: "array",
+        minItems: 1,
+        items: {
+          bsonType: "object",
+          required: ["categoria", "descripcion"],
+          properties: {
+            categoria: { enum: ["PROYECCION", "AUDIO", "SUBTITULOS", "SALA", "ATENCION"] },
+            descripcion: { bsonType: "string" }
+          }
+        }
+      },
+      personal_asignado: {
+        bsonType: "array",
+        items: {
+          bsonType: "object",
+          required: ["id_staff", "cargo"],
+          properties: {
+            id_staff: { bsonType: "int" },
+            cargo: { bsonType: "string" }
+          }
+        }
+      },
+      verificacion: {
+        bsonType: "object",
+        properties: {
+          id_staff: { bsonType: "int" },
+          fecha: { bsonType: "date" },
+          aprobado: { bsonType: "bool" },
+          observaciones: { bsonType: "string" }
+        }
+      }
+    }
+  } }
+});

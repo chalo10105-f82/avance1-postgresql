@@ -153,3 +153,95 @@ db.createCollection("resenas_peliculas", {
     }
   } }
 });
+
+
+// ---------- 4. reportes_incidentes ----------
+db.getCollection("reportes_incidentes").drop();
+db.createCollection("reportes_incidentes", {
+  validator: { $jsonSchema: {
+    bsonType: "object",
+    required: ["codigo", "tipo_incidente", "fecha_hora", "id_sala",
+               "id_staff_reporta", "prioridad", "estado", "descripcion", "detalle"],
+    properties: {
+      codigo: { bsonType: "string" },
+      tipo_incidente: { enum: ["FALLA_TECNICA", "QUEJA_SERVICIO", "SEGURIDAD"] },
+      fecha_hora: { bsonType: "date" },
+      id_funcion: { bsonType: "int" },
+      id_sala: { bsonType: "int" },
+      id_staff_reporta: { bsonType: "int" },
+      prioridad: { enum: ["BAJA", "MEDIA", "ALTA", "CRITICA"] },
+      estado: { enum: ["ABIERTO", "EN_PROCESO", "CERRADO"] },
+      descripcion: { bsonType: "string" },
+      detalle: { bsonType: "object" },
+      seguimiento: {
+        bsonType: "array",
+        items: {
+          bsonType: "object",
+          required: ["fecha", "id_staff", "accion"],
+          properties: {
+            fecha: { bsonType: "date" },
+            id_staff: { bsonType: "int" },
+            accion: { bsonType: "string" }
+          }
+        }
+      }
+    },
+    oneOf: [
+      {
+        // Variante 1: falla técnica
+        properties: {
+          tipo_incidente: { enum: ["FALLA_TECNICA"] },
+          detalle: {
+            bsonType: "object",
+            required: ["equipo", "minutos_interrupcion"],
+            properties: {
+              equipo: { enum: ["PROYECTOR", "SONIDO", "PANTALLA", "CLIMATIZACION", "ILUMINACION"] },
+              minutos_interrupcion: { bsonType: "int", minimum: 0 },
+              requirio_reprogramacion: { bsonType: "bool" },
+              repuesto: { bsonType: "string" }
+            }
+          }
+        }
+      },
+      {
+        // Variante 2: queja de servicio
+        properties: {
+          tipo_incidente: { enum: ["QUEJA_SERVICIO"] },
+          detalle: {
+            bsonType: "object",
+            required: ["area", "motivo"],
+            properties: {
+              area: { enum: ["TAQUILLA", "DULCERIA", "SALA", "ASEO"] },
+              motivo: { bsonType: "string" },
+              id_espectador: { bsonType: "int" },
+              id_venta: { bsonType: "int" },
+              compensacion: {
+                bsonType: "object",
+                properties: {
+                  tipo: { bsonType: "string" },
+                  valor: { bsonType: "int" }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        // Variante 3: incidente de seguridad
+        properties: {
+          tipo_incidente: { enum: ["SEGURIDAD"] },
+          detalle: {
+            bsonType: "object",
+            required: ["subtipo", "autoridades_notificadas"],
+            properties: {
+              subtipo: { enum: ["ROBO", "ALTERCADO", "EMERGENCIA_MEDICA", "EVACUACION", "GRABACION_ILEGAL"] },
+              autoridades_notificadas: { bsonType: "bool" },
+              personas_involucradas: { bsonType: "int" },
+              acciones_tomadas: { bsonType: "array", items: { bsonType: "string" } }
+            }
+          }
+        }
+      }
+    ]
+  } }
+});

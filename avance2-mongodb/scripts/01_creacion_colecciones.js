@@ -245,3 +245,16 @@ db.createCollection("reportes_incidentes", {
     ]
   } }
 });
+
+
+// ---------- Índices ----------
+db.fichas_tecnicas_peliculas.createIndex({ id_pelicula: 1 }, { unique: true });
+db.fichas_tecnicas_peliculas.createIndex({ titulo_pelicula: 1 }, { unique: true });
+
+db.requisitos_proyeccion.createIndex({ id_funcion: 1 }, { unique: true });
+
+db.resenas_peliculas.createIndex({ id_venta: 1 }, { unique: true });
+db.resenas_peliculas.createIndex({ id_pelicula: 1, calificacion: -1 });
+
+db.reportes_incidentes.createIndex({ codigo: 1 }, { unique: true });
+db.reportes_incidentes.createIndex({ tipo_incidente: 1, fecha_hora: -1 });

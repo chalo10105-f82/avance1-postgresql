@@ -2,9 +2,9 @@
 
 ## ACID: lo que se queda en PostgreSQL
 Las ventas, las funciones, las salas y los espectadores necesitan ACID.
-- Atomicidad: Una venta se registra completa (boleta, silla y pago) o no se registra.
+- Atomicidad: Una venta se registra completa (boletas y pago) o no se registra.
 - Consistencia: No se rompen reglas como las llaves foráneas.
-- Aislamiento: Dos espectadores no pueden comprar la misma silla al mismo tiempo.
+- Aislamiento: Dos ventas simultáneas no pueden vender, entre las dos, más boletas que la capacidad de la sala para esa función.
 - Durabilidad: Una venta confirmada no se pierde.
 
 MongoDB también garantiza ACID, pero a nivel de un solo documento. Por eso en

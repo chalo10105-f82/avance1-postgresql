@@ -1308,8 +1308,915 @@ print("requisitos_proyeccion: " + db.requisitos_proyeccion.countDocuments({}) + 
 // =====================================================================
 // SECCIÓN 3 · resenas_peliculas  (Julián)
 // =====================================================================
+db.resenas_peliculas.deleteMany({});
+
+db.resenas_peliculas.insertMany([
+  {
+    id_venta: 1,
+    id_espectador: 18,
+    id_funcion: 1,
+    id_pelicula: 1,
+    titulo_pelicula: "La Ruta del Colibrí",
+    calificacion: 5,
+    texto: "Muy bonita para ver en familia, a mis sobrinos les encantó.",
+    fecha_resena: ISODate("2026-09-27T18:10:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["familiar"],
+    votos_utiles: 4
+  },
+  {
+    id_venta: 2,
+    id_espectador: 6,
+    id_funcion: 1,
+    id_pelicula: 1,
+    titulo_pelicula: "La Ruta del Colibrí",
+    calificacion: 3,
+    texto: "La película estaba bien, pero la fila en taquilla fue muy larga y entramos tarde.",
+    fecha_resena: ISODate("2026-09-27T21:00:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Gracias por contarnos, Sebastián. Vamos a abrir otra taquilla los fines de semana.",
+      fecha: ISODate("2026-09-28T09:30:00-05:00")
+    }
+  },
+  {
+    id_venta: 3,
+    id_espectador: 1,
+    id_funcion: 2,
+    id_pelicula: 2,
+    titulo_pelicula: "Noche en Villa Esperanza",
+    calificacion: 4,
+    texto: "Buena historia y los actores muy bien. Los subtítulos se leían bien.",
+    fecha_resena: ISODate("2026-09-28T08:45:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["drama", "subtitulada"]
+  },
+  {
+    id_venta: 4,
+    id_espectador: 22,
+    id_funcion: 2,
+    id_pelicula: 2,
+    titulo_pelicula: "Noche en Villa Esperanza",
+    calificacion: 2,
+    texto: "Se me hizo muy lenta, casi me duermo en la mitad.",
+    fecha_resena: ISODate("2026-09-28T12:00:00-05:00"),
+    estado: "PUBLICADA",
+    votos_utiles: 1
+  },
+  {
+    id_venta: 5,
+    id_espectador: 7,
+    id_funcion: 3,
+    id_pelicula: 3,
+    titulo_pelicula: "Papá en Apuros",
+    calificacion: 5,
+    texto: "Me reí toda la película, muy buena comedia.",
+    fecha_resena: ISODate("2026-10-03T19:20:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["comedia"],
+    votos_utiles: 6
+  },
+  {
+    id_venta: 6,
+    id_espectador: 19,
+    id_funcion: 3,
+    id_pelicula: 3,
+    titulo_pelicula: "Papá en Apuros",
+    calificacion: 4,
+    texto: "Divertida, aunque el sonido se cortó un momento.",
+    fecha_resena: ISODate("2026-10-03T20:05:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 2,
+      texto: "Gracias, Sofía. Ya revisamos el sonido de la sala 1.",
+      fecha: ISODate("2026-10-04T10:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 7,
+    id_espectador: 20,
+    id_funcion: 4,
+    id_pelicula: 4,
+    titulo_pelicula: "Galaxia Nómada",
+    calificacion: 5,
+    texto: "El 3D se veía increíble, valió la pena.",
+    fecha_resena: ISODate("2026-09-26T18:30:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["3D", "efectos"],
+    votos_utiles: 8
+  },
+  {
+    id_venta: 8,
+    id_espectador: 8,
+    id_funcion: 4,
+    id_pelicula: 4,
+    titulo_pelicula: "Galaxia Nómada",
+    calificacion: 3,
+    texto: "La película bien, pero las crispetas estaban frías.",
+    fecha_resena: ISODate("2026-09-26T19:00:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Hola, Andrés. Lamentamos lo de las crispetas, ya hablamos con el personal de dulcería.",
+      fecha: ISODate("2026-09-27T10:15:00-05:00")
+    }
+  },
+  {
+    id_venta: 10,
+    id_espectador: 3,
+    id_funcion: 5,
+    id_pelicula: 5,
+    titulo_pelicula: "Océano Profundo",
+    calificacion: 4,
+    texto: "Muy buena aunque un poco larga. El sonido se cortó unos minutos.",
+    fecha_resena: ISODate("2026-09-27T09:00:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["3D"]
+  },
+  {
+    id_venta: 11,
+    id_espectador: 10,
+    id_funcion: 5,
+    id_pelicula: 5,
+    titulo_pelicula: "Océano Profundo",
+    calificacion: 1,
+    texto: "Muy aburrida y encima se dañó el sonido. No la recomiendo.",
+    fecha_resena: ISODate("2026-09-27T11:30:00-05:00"),
+    estado: "PUBLICADA",
+    votos_utiles: 2
+  },
+  {
+    id_venta: 12,
+    id_espectador: 27,
+    id_funcion: 5,
+    id_pelicula: 5,
+    titulo_pelicula: "Océano Profundo",
+    calificacion: 5,
+    texto: "Las escenas debajo del agua en 3D son lo mejor de la película.",
+    fecha_resena: ISODate("2026-09-28T15:00:00-05:00"),
+    estado: "PUBLICADA"
+  },
+  {
+    id_venta: 13,
+    id_espectador: 21,
+    id_funcion: 6,
+    id_pelicula: 6,
+    titulo_pelicula: "Aventuras en el Bosque Encantado",
+    calificacion: 2,
+    texto: "A los niños les gustó, pero la sala estaba sucia cuando entramos.",
+    fecha_resena: ISODate("2026-10-04T17:00:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["aseo"],
+    respuesta_empresa: {
+      id_staff: 2,
+      texto: "Hola, Salomé. Tienes razón, ya reforzamos el aseo entre funciones.",
+      fecha: ISODate("2026-10-05T09:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 14,
+    id_espectador: 28,
+    id_funcion: 6,
+    id_pelicula: 6,
+    titulo_pelicula: "Aventuras en el Bosque Encantado",
+    calificacion: 4,
+    texto: "Buena para niños pequeños, el 3D les encantó.",
+    fecha_resena: ISODate("2026-10-04T18:20:00-05:00"),
+    estado: "PUBLICADA"
+  },
+  {
+    id_venta: 15,
+    id_espectador: 13,
+    id_funcion: 7,
+    id_pelicula: 7,
+    titulo_pelicula: "El Jardín de Cristal",
+    calificacion: 5,
+    texto: "La sala VIP es muy cómoda y la película es hermosa.",
+    fecha_resena: ISODate("2026-09-28T22:00:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["VIP"],
+    votos_utiles: 3
+  },
+  {
+    id_venta: 16,
+    id_espectador: 24,
+    id_funcion: 7,
+    id_pelicula: 7,
+    titulo_pelicula: "El Jardín de Cristal",
+    calificacion: 3,
+    texto: "La historia está bien, pero hacía mucho calor en la sala.",
+    fecha_resena: ISODate("2026-09-29T08:30:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Gracias, Alejandro. Ese día falló el aire acondicionado y ya se arregló.",
+      fecha: ISODate("2026-09-29T14:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 18,
+    id_espectador: 12,
+    id_funcion: 8,
+    id_pelicula: 8,
+    titulo_pelicula: "Tormenta Roja",
+    calificacion: 2,
+    texto: "Pedí comida a la silla y llegó cuando la película ya había empezado.",
+    fecha_resena: ISODate("2026-10-03T09:15:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Hola, Felipe. Te pedimos disculpas, por eso te dimos un bono de dulcería.",
+      fecha: ISODate("2026-10-03T12:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 19,
+    id_espectador: 29,
+    id_funcion: 8,
+    id_pelicula: 8,
+    titulo_pelicula: "Tormenta Roja",
+    calificacion: 5,
+    texto: "Mucha acción, de las mejores películas que he visto este año.",
+    fecha_resena: ISODate("2026-10-03T10:00:00-05:00"),
+    estado: "PUBLICADA",
+    votos_utiles: 5
+  },
+  {
+    id_venta: 20,
+    id_espectador: 9,
+    id_funcion: 8,
+    id_pelicula: 8,
+    titulo_pelicula: "Tormenta Roja",
+    calificacion: 4,
+    texto: "Buena película, pero dos personas estaban discutiendo atrás.",
+    fecha_resena: ISODate("2026-10-03T13:40:00-05:00"),
+    estado: "PUBLICADA"
+  },
+  {
+    id_venta: 21,
+    id_espectador: 23,
+    id_funcion: 9,
+    id_pelicula: 9,
+    titulo_pelicula: "Código Aurora",
+    calificacion: 4,
+    texto: "Muy buenos efectos en 3D, aunque el final se sintió apresurado.",
+    fecha_resena: ISODate("2026-10-04T10:20:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["efectos", "3D"],
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Gracias, Gabriela. Nos alegra que disfrutaras la experiencia en sala VIP.",
+      fecha: ISODate("2026-10-05T09:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 22,
+    id_espectador: 30,
+    id_funcion: 9,
+    id_pelicula: 9,
+    titulo_pelicula: "Código Aurora",
+    calificacion: 3,
+    texto: "Al principio el 3D se veía desenfocado, después lo arreglaron.",
+    fecha_resena: ISODate("2026-10-04T15:00:00-05:00"),
+    estado: "EN_REVISION"
+  },
+  {
+    id_venta: 23,
+    id_espectador: 4,
+    id_funcion: 10,
+    id_pelicula: 10,
+    titulo_pelicula: "Cenizas de Julio",
+    calificacion: 2,
+    texto: "Unas personas estaban haciendo ruido y nadie del cine les dijo nada.",
+    fecha_resena: ISODate("2026-09-30T08:00:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 2,
+      texto: "Gracias por avisarnos, Mateo. Vamos a pedir al personal que esté más pendiente.",
+      fecha: ISODate("2026-09-30T15:30:00-05:00")
+    }
+  },
+  {
+    id_venta: 24,
+    id_espectador: 25,
+    id_funcion: 10,
+    id_pelicula: 10,
+    titulo_pelicula: "Cenizas de Julio",
+    calificacion: 4,
+    texto: "Película muy emotiva. Sonó una alarma pero salimos rápido y todo salió bien.",
+    fecha_resena: ISODate("2026-09-30T19:00:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["drama"]
+  },
+  {
+    id_venta: 26,
+    id_espectador: 11,
+    id_funcion: 11,
+    id_pelicula: 11,
+    titulo_pelicula: "El Silencio del Valle",
+    calificacion: 2,
+    texto: "El proyector se apagó en la mitad y nadie explicó qué estaba pasando.",
+    fecha_resena: ISODate("2026-10-02T09:00:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Hola, Mariana. Fue una falla del proyector, por eso te dimos una boleta de cortesía.",
+      fecha: ISODate("2026-10-02T11:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 27,
+    id_espectador: 15,
+    id_funcion: 11,
+    id_pelicula: 11,
+    titulo_pelicula: "El Silencio del Valle",
+    calificacion: 1,
+    texto: "Pésimo todo, el que atendía la sala era un inútil.",
+    fecha_resena: ISODate("2026-10-02T10:30:00-05:00"),
+    estado: "OCULTA"
+  },
+  {
+    id_venta: 28,
+    id_espectador: 18,
+    id_funcion: 12,
+    id_pelicula: 12,
+    titulo_pelicula: "Mi Abuela la Hechicera",
+    calificacion: 5,
+    texto: "Muy divertida, la vi con mi abuela y nos encantó.",
+    fecha_resena: ISODate("2026-10-04T14:00:00-05:00"),
+    estado: "PUBLICADA",
+    votos_utiles: 2
+  },
+  {
+    id_venta: 29,
+    id_espectador: 26,
+    id_funcion: 12,
+    id_pelicula: 12,
+    titulo_pelicula: "Mi Abuela la Hechicera",
+    calificacion: 4,
+    texto: "Bonita para ver en familia. Lo malo es que en taquilla no recibían tarjeta.",
+    fecha_resena: ISODate("2026-10-04T15:30:00-05:00"),
+    estado: "PUBLICADA"
+  },
+  {
+    id_venta: 30,
+    id_espectador: 5,
+    id_funcion: 13,
+    id_pelicula: 13,
+    titulo_pelicula: "Rumbo a Marte",
+    calificacion: 3,
+    texto: "Buena película, pero el combo me llegó sin la bebida.",
+    fecha_resena: ISODate("2026-10-03T20:00:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 2,
+      texto: "Gracias, Isabella. Ya hablamos con dulcería para que no vuelva a pasar.",
+      fecha: ISODate("2026-10-04T09:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 32,
+    id_espectador: 21,
+    id_funcion: 13,
+    id_pelicula: 13,
+    titulo_pelicula: "Rumbo a Marte",
+    calificacion: 5,
+    texto: "Me encantó, los efectos en 3D son muy buenos.",
+    fecha_resena: ISODate("2026-10-04T08:00:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["3D", "efectos"]
+  },
+  {
+    id_venta: 33,
+    id_espectador: 17,
+    id_funcion: 14,
+    id_pelicula: 14,
+    titulo_pelicula: "Dragones del Alba",
+    calificacion: 4,
+    texto: "Los dragones en 3D se ven muy reales.",
+    fecha_resena: ISODate("2026-10-04T19:30:00-05:00"),
+    estado: "PUBLICADA",
+    votos_utiles: 1
+  },
+  {
+    id_venta: 34,
+    id_espectador: 32,
+    id_funcion: 14,
+    id_pelicula: 14,
+    titulo_pelicula: "Dragones del Alba",
+    calificacion: 1,
+    texto: "La función se retrasó casi 40 minutos por un daño del proyector.",
+    fecha_resena: ISODate("2026-10-04T20:00:00-05:00"),
+    estado: "EN_REVISION"
+  }
+]);
+
+print("resenas_peliculas: " + db.resenas_peliculas.countDocuments({}) + " documentos");
 
 
 // =====================================================================
 // SECCIÓN 4 · reportes_incidentes  (Julián)
 // =====================================================================
+db.reportes_incidentes.deleteMany({});
+
+db.reportes_incidentes.insertMany([
+  // Fallas técnicas (las reporta el proyeccionista de la sala)
+  {
+    codigo: "INC-2026-001",
+    tipo_incidente: "FALLA_TECNICA",
+    fecha_hora: ISODate("2026-10-01T21:40:00-05:00"),
+    id_funcion: 11,
+    id_sala: 4,
+    id_staff_reporta: 26,
+    prioridad: "ALTA",
+    estado: "CERRADO",
+    descripcion: "El proyector se apagó por sobrecalentamiento a mitad de la función.",
+    detalle: { equipo: "PROYECTOR", minutos_interrupcion: 12, requirio_reprogramacion: false },
+    seguimiento: [
+      { fecha: ISODate("2026-10-01T21:45:00-05:00"), id_staff: 26, accion: "Reinicio del proyector" },
+      { fecha: ISODate("2026-10-02T10:00:00-05:00"), id_staff: 1, accion: "Se programa mantenimiento preventivo" }
+    ]
+  },
+  {
+    codigo: "INC-2026-002",
+    tipo_incidente: "FALLA_TECNICA",
+    fecha_hora: ISODate("2026-09-26T20:15:00-05:00"),
+    id_funcion: 5,
+    id_sala: 2,
+    id_staff_reporta: 24,
+    prioridad: "MEDIA",
+    estado: "CERRADO",
+    descripcion: "Se cortó el sonido de la sala durante unos minutos.",
+    detalle: { equipo: "SONIDO", minutos_interrupcion: 5 },
+    seguimiento: [
+      { fecha: ISODate("2026-09-26T20:20:00-05:00"), id_staff: 24, accion: "Se reinició el amplificador" }
+    ]
+  },
+  {
+    codigo: "INC-2026-003",
+    tipo_incidente: "FALLA_TECNICA",
+    fecha_hora: ISODate("2026-10-03T19:20:00-05:00"),
+    id_funcion: 9,
+    id_sala: 3,
+    id_staff_reporta: 25,
+    prioridad: "MEDIA",
+    estado: "CERRADO",
+    descripcion: "La imagen 3D se veía desenfocada al inicio de la película.",
+    detalle: { equipo: "PROYECTOR", minutos_interrupcion: 4, requirio_reprogramacion: false },
+    seguimiento: [
+      { fecha: ISODate("2026-10-03T19:24:00-05:00"), id_staff: 25, accion: "Se volvió a calibrar el modo 3D" }
+    ]
+  },
+  {
+    codigo: "INC-2026-004",
+    tipo_incidente: "FALLA_TECNICA",
+    fecha_hora: ISODate("2026-09-28T18:50:00-05:00"),
+    id_funcion: 7,
+    id_sala: 3,
+    id_staff_reporta: 25,
+    prioridad: "BAJA",
+    estado: "CERRADO",
+    descripcion: "El aire acondicionado dejó de enfriar y la sala se calentó.",
+    detalle: { equipo: "CLIMATIZACION", minutos_interrupcion: 0, repuesto: "Filtro del aire acondicionado" },
+    seguimiento: [
+      { fecha: ISODate("2026-09-29T09:00:00-05:00"), id_staff: 2, accion: "Técnico cambia el filtro del aire" }
+    ]
+  },
+  {
+    codigo: "INC-2026-005",
+    tipo_incidente: "FALLA_TECNICA",
+    fecha_hora: ISODate("2026-10-03T17:45:00-05:00"),
+    id_funcion: 13,
+    id_sala: 5,
+    id_staff_reporta: 27,
+    prioridad: "BAJA",
+    estado: "CERRADO",
+    descripcion: "Las luces del pasillo se encendieron solas durante la película.",
+    detalle: { equipo: "ILUMINACION", minutos_interrupcion: 3 }
+  },
+  {
+    codigo: "INC-2026-006",
+    tipo_incidente: "FALLA_TECNICA",
+    fecha_hora: ISODate("2026-10-04T16:20:00-05:00"),
+    id_funcion: 14,
+    id_sala: 5,
+    id_staff_reporta: 27,
+    prioridad: "CRITICA",
+    estado: "CERRADO",
+    descripcion: "Se fundió la lámpara del proyector y hubo que cambiarla.",
+    detalle: {
+      equipo: "PROYECTOR",
+      minutos_interrupcion: 35,
+      requirio_reprogramacion: true,
+      repuesto: "Lámpara del proyector"
+    },
+    seguimiento: [
+      { fecha: ISODate("2026-10-04T16:25:00-05:00"), id_staff: 27, accion: "Se avisa al encargado de sala" },
+      { fecha: ISODate("2026-10-04T16:55:00-05:00"), id_staff: 27, accion: "Se cambia la lámpara y se reanuda la función" }
+    ]
+  },
+  {
+    codigo: "INC-2026-007",
+    tipo_incidente: "FALLA_TECNICA",
+    fecha_hora: ISODate("2026-10-03T16:40:00-05:00"),
+    id_funcion: 3,
+    id_sala: 1,
+    id_staff_reporta: 23,
+    prioridad: "MEDIA",
+    estado: "CERRADO",
+    descripcion: "El parlante izquierdo dejó de sonar.",
+    detalle: { equipo: "SONIDO", minutos_interrupcion: 7 },
+    seguimiento: [
+      { fecha: ISODate("2026-10-03T16:47:00-05:00"), id_staff: 23, accion: "Se ajustó el cable del parlante" }
+    ]
+  },
+  {
+    codigo: "INC-2026-008",
+    tipo_incidente: "FALLA_TECNICA",
+    fecha_hora: ISODate("2026-10-06T15:10:00-05:00"),
+    id_funcion: 15,
+    id_sala: 4,
+    id_staff_reporta: 26,
+    prioridad: "BAJA",
+    estado: "EN_PROCESO",
+    descripcion: "Se soltó un borde de la pantalla y se ve una arruga.",
+    detalle: { equipo: "PANTALLA", minutos_interrupcion: 0 },
+    seguimiento: [
+      { fecha: ISODate("2026-10-07T09:00:00-05:00"), id_staff: 2, accion: "Se pide visita del técnico de pantallas" }
+    ]
+  },
+  {
+    codigo: "INC-2026-009",
+    tipo_incidente: "FALLA_TECNICA",
+    fecha_hora: ISODate("2026-10-05T10:30:00-05:00"),
+    id_sala: 2,
+    id_staff_reporta: 24,
+    prioridad: "MEDIA",
+    estado: "EN_PROCESO",
+    descripcion: "En la revisión de la mañana el aire acondicionado no encendió.",
+    detalle: { equipo: "CLIMATIZACION", minutos_interrupcion: 0 }
+  },
+  {
+    codigo: "INC-2026-010",
+    tipo_incidente: "FALLA_TECNICA",
+    fecha_hora: ISODate("2026-10-07T10:00:00-05:00"),
+    id_sala: 1,
+    id_staff_reporta: 23,
+    prioridad: "ALTA",
+    estado: "ABIERTO",
+    descripcion: "Las luces de emergencia de la sala no prenden.",
+    detalle: { equipo: "ILUMINACION", minutos_interrupcion: 0 }
+  },
+
+  // Quejas de servicio
+  {
+    codigo: "INC-2026-011",
+    tipo_incidente: "QUEJA_SERVICIO",
+    fecha_hora: ISODate("2026-10-02T20:50:00-05:00"),
+    id_funcion: 8,
+    id_sala: 3,
+    id_staff_reporta: 15,
+    prioridad: "MEDIA",
+    estado: "CERRADO",
+    descripcion: "El pedido de comida a la silla llegó después de iniciada la película.",
+    detalle: {
+      area: "SALA",
+      motivo: "Demora en el servicio VIP",
+      id_espectador: 12,
+      id_venta: 18,
+      compensacion: { tipo: "BONO_DULCERIA", valor: 15000 }
+    }
+  },
+  {
+    codigo: "INC-2026-012",
+    tipo_incidente: "QUEJA_SERVICIO",
+    fecha_hora: ISODate("2026-09-27T15:05:00-05:00"),
+    id_funcion: 1,
+    id_sala: 1,
+    id_staff_reporta: 3,
+    prioridad: "BAJA",
+    estado: "CERRADO",
+    descripcion: "El espectador entró tarde a la función por la fila de la taquilla.",
+    detalle: { area: "TAQUILLA", motivo: "Fila muy larga", id_espectador: 6, id_venta: 2 },
+    seguimiento: [
+      { fecha: ISODate("2026-09-28T09:30:00-05:00"), id_staff: 1, accion: "Se decide abrir otra taquilla los fines de semana" }
+    ]
+  },
+  {
+    codigo: "INC-2026-013",
+    tipo_incidente: "QUEJA_SERVICIO",
+    fecha_hora: ISODate("2026-09-26T15:40:00-05:00"),
+    id_funcion: 4,
+    id_sala: 2,
+    id_staff_reporta: 8,
+    prioridad: "BAJA",
+    estado: "CERRADO",
+    descripcion: "El espectador dice que las crispetas estaban frías.",
+    detalle: {
+      area: "DULCERIA",
+      motivo: "Producto en mal estado",
+      id_espectador: 8,
+      id_venta: 8,
+      compensacion: { tipo: "CAMBIO_PRODUCTO", valor: 9000 }
+    }
+  },
+  {
+    codigo: "INC-2026-014",
+    tipo_incidente: "QUEJA_SERVICIO",
+    fecha_hora: ISODate("2026-09-29T19:10:00-05:00"),
+    id_funcion: 10,
+    id_sala: 4,
+    id_staff_reporta: 16,
+    prioridad: "MEDIA",
+    estado: "CERRADO",
+    descripcion: "Un espectador se queja porque otros hacían ruido y nadie los calló.",
+    detalle: { area: "SALA", motivo: "Ruido de otros espectadores", id_espectador: 4, id_venta: 23 },
+    seguimiento: [
+      { fecha: ISODate("2026-09-29T19:15:00-05:00"), id_staff: 16, accion: "Se pidió silencio a las personas" }
+    ]
+  },
+  {
+    codigo: "INC-2026-015",
+    tipo_incidente: "QUEJA_SERVICIO",
+    fecha_hora: ISODate("2026-10-04T14:10:00-05:00"),
+    id_funcion: 6,
+    id_sala: 2,
+    id_staff_reporta: 14,
+    prioridad: "MEDIA",
+    estado: "CERRADO",
+    descripcion: "La sala tenía restos de comida de la función anterior.",
+    detalle: {
+      area: "ASEO",
+      motivo: "Sala sucia",
+      id_espectador: 21,
+      id_venta: 13,
+      compensacion: { tipo: "BONO_DULCERIA", valor: 10000 }
+    },
+    seguimiento: [
+      { fecha: ISODate("2026-10-04T14:15:00-05:00"), id_staff: 19, accion: "Aseo limpia la zona de la sala" },
+      { fecha: ISODate("2026-10-05T09:00:00-05:00"), id_staff: 2, accion: "Se agrega una revisión de aseo entre funciones" }
+    ]
+  },
+  {
+    codigo: "INC-2026-016",
+    tipo_incidente: "QUEJA_SERVICIO",
+    fecha_hora: ISODate("2026-10-04T11:05:00-05:00"),
+    id_funcion: 12,
+    id_sala: 4,
+    id_staff_reporta: 4,
+    prioridad: "BAJA",
+    estado: "EN_PROCESO",
+    descripcion: "En taquilla no se podía pagar con tarjeta.",
+    detalle: { area: "TAQUILLA", motivo: "Datáfono dañado", id_espectador: 26 }
+  },
+  {
+    codigo: "INC-2026-017",
+    tipo_incidente: "QUEJA_SERVICIO",
+    fecha_hora: ISODate("2026-10-03T17:10:00-05:00"),
+    id_funcion: 13,
+    id_sala: 5,
+    id_staff_reporta: 9,
+    prioridad: "BAJA",
+    estado: "CERRADO",
+    descripcion: "Al combo le faltaba la bebida.",
+    detalle: {
+      area: "DULCERIA",
+      motivo: "Pedido incompleto",
+      id_espectador: 5,
+      id_venta: 30,
+      compensacion: { tipo: "REPOSICION", valor: 6000 }
+    }
+  },
+  {
+    codigo: "INC-2026-018",
+    tipo_incidente: "QUEJA_SERVICIO",
+    fecha_hora: ISODate("2026-10-01T21:55:00-05:00"),
+    id_funcion: 11,
+    id_sala: 4,
+    id_staff_reporta: 16,
+    prioridad: "ALTA",
+    estado: "CERRADO",
+    descripcion: "No se avisó a los espectadores qué pasaba cuando se apagó el proyector.",
+    detalle: {
+      area: "SALA",
+      motivo: "Falta de información durante la falla",
+      id_espectador: 11,
+      id_venta: 26,
+      compensacion: { tipo: "BOLETA_CORTESIA", valor: 18000 }
+    },
+    seguimiento: [
+      { fecha: ISODate("2026-10-02T10:00:00-05:00"), id_staff: 1, accion: "Se entrega boleta de cortesía" }
+    ]
+  },
+  {
+    codigo: "INC-2026-019",
+    tipo_incidente: "QUEJA_SERVICIO",
+    fecha_hora: ISODate("2026-10-04T16:30:00-05:00"),
+    id_funcion: 14,
+    id_sala: 5,
+    id_staff_reporta: 17,
+    prioridad: "ALTA",
+    estado: "CERRADO",
+    descripcion: "El espectador se queja porque la función se retrasó por el daño del proyector.",
+    detalle: {
+      area: "SALA",
+      motivo: "Retraso de la función",
+      id_espectador: 32,
+      id_venta: 34,
+      compensacion: { tipo: "BOLETA_CORTESIA", valor: 18000 }
+    }
+  },
+  {
+    codigo: "INC-2026-020",
+    tipo_incidente: "QUEJA_SERVICIO",
+    fecha_hora: ISODate("2026-10-06T14:40:00-05:00"),
+    id_funcion: 15,
+    id_sala: 4,
+    id_staff_reporta: 16,
+    prioridad: "BAJA",
+    estado: "ABIERTO",
+    descripcion: "El baño cerca de la sala 4 no tenía papel.",
+    detalle: { area: "ASEO", motivo: "Baño sin papel" }
+  },
+
+  // Incidentes de seguridad (28 turno mañana, 29 tarde, 30 noche)
+  {
+    codigo: "INC-2026-021",
+    tipo_incidente: "SEGURIDAD",
+    fecha_hora: ISODate("2026-09-27T19:35:00-05:00"),
+    id_funcion: 2,
+    id_sala: 1,
+    id_staff_reporta: 30,
+    prioridad: "ALTA",
+    estado: "CERRADO",
+    descripcion: "Un asistente grababa la película con el celular.",
+    detalle: {
+      subtipo: "GRABACION_ILEGAL",
+      autoridades_notificadas: false,
+      personas_involucradas: 1,
+      acciones_tomadas: ["Se pidió borrar el video", "Se acompañó a la persona fuera de la sala"]
+    }
+  },
+  {
+    codigo: "INC-2026-022",
+    tipo_incidente: "SEGURIDAD",
+    fecha_hora: ISODate("2026-10-04T11:40:00-05:00"),
+    id_funcion: 12,
+    id_sala: 4,
+    id_staff_reporta: 28,
+    prioridad: "CRITICA",
+    estado: "CERRADO",
+    descripcion: "Una persona se desmayó dentro de la sala.",
+    detalle: {
+      subtipo: "EMERGENCIA_MEDICA",
+      autoridades_notificadas: false,
+      personas_involucradas: 1,
+      acciones_tomadas: ["Primeros auxilios", "Se llamó a una ambulancia"]
+    },
+    seguimiento: [
+      { fecha: ISODate("2026-10-04T12:10:00-05:00"), id_staff: 28, accion: "La ambulancia se llevó a la persona" }
+    ]
+  },
+  {
+    codigo: "INC-2026-023",
+    tipo_incidente: "SEGURIDAD",
+    fecha_hora: ISODate("2026-10-02T21:15:00-05:00"),
+    id_funcion: 8,
+    id_sala: 3,
+    id_staff_reporta: 30,
+    prioridad: "MEDIA",
+    estado: "CERRADO",
+    descripcion: "Dos espectadores empezaron a discutir porque uno hablaba por celular.",
+    detalle: {
+      subtipo: "ALTERCADO",
+      autoridades_notificadas: false,
+      personas_involucradas: 2,
+      acciones_tomadas: ["Se separó a las personas"]
+    }
+  },
+  {
+    codigo: "INC-2026-024",
+    tipo_incidente: "SEGURIDAD",
+    fecha_hora: ISODate("2026-09-26T16:00:00-05:00"),
+    id_funcion: 4,
+    id_sala: 2,
+    id_staff_reporta: 29,
+    prioridad: "ALTA",
+    estado: "CERRADO",
+    descripcion: "Le robaron el celular a un espectador durante la película.",
+    detalle: {
+      subtipo: "ROBO",
+      autoridades_notificadas: true,
+      personas_involucradas: 1,
+      acciones_tomadas: ["Se revisaron las cámaras", "Se llamó a la policía"]
+    },
+    seguimiento: [
+      { fecha: ISODate("2026-09-26T17:30:00-05:00"), id_staff: 29, accion: "Se entregó el video de las cámaras a la policía" }
+    ]
+  },
+  {
+    codigo: "INC-2026-025",
+    tipo_incidente: "SEGURIDAD",
+    fecha_hora: ISODate("2026-09-29T19:45:00-05:00"),
+    id_funcion: 10,
+    id_sala: 4,
+    id_staff_reporta: 30,
+    prioridad: "CRITICA",
+    estado: "CERRADO",
+    descripcion: "Sonó la alarma de humo y se sacó a todos de la sala por 10 minutos. Fue una falsa alarma.",
+    detalle: {
+      subtipo: "EVACUACION",
+      autoridades_notificadas: true,
+      acciones_tomadas: ["Se evacuó la sala", "Revisaron los bomberos", "Se reanudó la función"]
+    }
+  },
+  {
+    codigo: "INC-2026-026",
+    tipo_incidente: "SEGURIDAD",
+    fecha_hora: ISODate("2026-09-28T19:10:00-05:00"),
+    id_funcion: 7,
+    id_sala: 3,
+    id_staff_reporta: 30,
+    prioridad: "MEDIA",
+    estado: "CERRADO",
+    descripcion: "Una persona grababa partes de la película con el celular.",
+    detalle: {
+      subtipo: "GRABACION_ILEGAL",
+      autoridades_notificadas: false,
+      personas_involucradas: 1,
+      acciones_tomadas: ["Se pidió borrar el video"]
+    }
+  },
+  {
+    codigo: "INC-2026-027",
+    tipo_incidente: "SEGURIDAD",
+    fecha_hora: ISODate("2026-10-03T16:50:00-05:00"),
+    id_funcion: 3,
+    id_sala: 1,
+    id_staff_reporta: 29,
+    prioridad: "MEDIA",
+    estado: "CERRADO",
+    descripcion: "Un niño se cayó en las escaleras de la sala.",
+    detalle: {
+      subtipo: "EMERGENCIA_MEDICA",
+      autoridades_notificadas: false,
+      personas_involucradas: 1,
+      acciones_tomadas: ["Primeros auxilios"]
+    }
+  },
+  {
+    codigo: "INC-2026-028",
+    tipo_incidente: "SEGURIDAD",
+    fecha_hora: ISODate("2026-10-04T17:00:00-05:00"),
+    id_funcion: 14,
+    id_sala: 5,
+    id_staff_reporta: 29,
+    prioridad: "MEDIA",
+    estado: "CERRADO",
+    descripcion: "Un espectador molesto por el retraso le gritó al encargado de la sala.",
+    detalle: {
+      subtipo: "ALTERCADO",
+      autoridades_notificadas: false,
+      personas_involucradas: 1
+    }
+  },
+  {
+    codigo: "INC-2026-029",
+    tipo_incidente: "SEGURIDAD",
+    fecha_hora: ISODate("2026-10-03T17:50:00-05:00"),
+    id_funcion: 13,
+    id_sala: 5,
+    id_staff_reporta: 29,
+    prioridad: "ALTA",
+    estado: "CERRADO",
+    descripcion: "Una persona intentó llevarse un bolso que no era suyo.",
+    detalle: {
+      subtipo: "ROBO",
+      autoridades_notificadas: true,
+      personas_involucradas: 2,
+      acciones_tomadas: ["Se detuvo a la persona", "Se llamó a la policía"]
+    }
+  },
+  {
+    codigo: "INC-2026-030",
+    tipo_incidente: "SEGURIDAD",
+    fecha_hora: ISODate("2026-10-06T15:30:00-05:00"),
+    id_funcion: 15,
+    id_sala: 4,
+    id_staff_reporta: 29,
+    prioridad: "MEDIA",
+    estado: "EN_PROCESO",
+    descripcion: "Un espectador dice que le robaron la chaqueta que dejó en la sala.",
+    detalle: {
+      subtipo: "ROBO",
+      autoridades_notificadas: false,
+      personas_involucradas: 1
+    },
+    seguimiento: [
+      { fecha: ISODate("2026-10-06T17:00:00-05:00"), id_staff: 29, accion: "Se están revisando las cámaras" }
+    ]
+  }
+]);
+
+print("reportes_incidentes: " + db.reportes_incidentes.countDocuments({}) + " documentos");

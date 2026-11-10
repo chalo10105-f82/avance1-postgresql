@@ -1308,6 +1308,411 @@ print("requisitos_proyeccion: " + db.requisitos_proyeccion.countDocuments({}) + 
 // =====================================================================
 // SECCIÓN 3 · resenas_peliculas  (Julián)
 // =====================================================================
+db.resenas_peliculas.deleteMany({});
+
+db.resenas_peliculas.insertMany([
+  {
+    id_venta: 1,
+    id_espectador: 18,
+    id_funcion: 1,
+    id_pelicula: 1,
+    titulo_pelicula: "La Ruta del Colibrí",
+    calificacion: 5,
+    texto: "Muy bonita para ver en familia, a mis sobrinos les encantó.",
+    fecha_resena: ISODate("2026-09-27T18:10:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["familiar"],
+    votos_utiles: 4
+  },
+  {
+    id_venta: 2,
+    id_espectador: 6,
+    id_funcion: 1,
+    id_pelicula: 1,
+    titulo_pelicula: "La Ruta del Colibrí",
+    calificacion: 3,
+    texto: "La película estaba bien, pero la fila en taquilla fue muy larga y entramos tarde.",
+    fecha_resena: ISODate("2026-09-27T21:00:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Gracias por contarnos, Sebastián. Vamos a abrir otra taquilla los fines de semana.",
+      fecha: ISODate("2026-09-28T09:30:00-05:00")
+    }
+  },
+  {
+    id_venta: 3,
+    id_espectador: 1,
+    id_funcion: 2,
+    id_pelicula: 2,
+    titulo_pelicula: "Noche en Villa Esperanza",
+    calificacion: 4,
+    texto: "Buena historia y los actores muy bien. Los subtítulos se leían bien.",
+    fecha_resena: ISODate("2026-09-28T08:45:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["drama", "subtitulada"]
+  },
+  {
+    id_venta: 4,
+    id_espectador: 22,
+    id_funcion: 2,
+    id_pelicula: 2,
+    titulo_pelicula: "Noche en Villa Esperanza",
+    calificacion: 2,
+    texto: "Se me hizo muy lenta, casi me duermo en la mitad.",
+    fecha_resena: ISODate("2026-09-28T12:00:00-05:00"),
+    estado: "PUBLICADA",
+    votos_utiles: 1
+  },
+  {
+    id_venta: 5,
+    id_espectador: 7,
+    id_funcion: 3,
+    id_pelicula: 3,
+    titulo_pelicula: "Papá en Apuros",
+    calificacion: 5,
+    texto: "Me reí toda la película, muy buena comedia.",
+    fecha_resena: ISODate("2026-10-03T19:20:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["comedia"],
+    votos_utiles: 6
+  },
+  {
+    id_venta: 6,
+    id_espectador: 19,
+    id_funcion: 3,
+    id_pelicula: 3,
+    titulo_pelicula: "Papá en Apuros",
+    calificacion: 4,
+    texto: "Divertida, aunque el sonido se cortó un momento.",
+    fecha_resena: ISODate("2026-10-03T20:05:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 2,
+      texto: "Gracias, Sofía. Ya revisamos el sonido de la sala 1.",
+      fecha: ISODate("2026-10-04T10:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 7,
+    id_espectador: 20,
+    id_funcion: 4,
+    id_pelicula: 4,
+    titulo_pelicula: "Galaxia Nómada",
+    calificacion: 5,
+    texto: "El 3D se veía increíble, valió la pena.",
+    fecha_resena: ISODate("2026-09-26T18:30:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["3D", "efectos"],
+    votos_utiles: 8
+  },
+  {
+    id_venta: 8,
+    id_espectador: 8,
+    id_funcion: 4,
+    id_pelicula: 4,
+    titulo_pelicula: "Galaxia Nómada",
+    calificacion: 3,
+    texto: "La película bien, pero las crispetas estaban frías.",
+    fecha_resena: ISODate("2026-09-26T19:00:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Hola, Andrés. Lamentamos lo de las crispetas, ya hablamos con el personal de dulcería.",
+      fecha: ISODate("2026-09-27T10:15:00-05:00")
+    }
+  },
+  {
+    id_venta: 10,
+    id_espectador: 3,
+    id_funcion: 5,
+    id_pelicula: 5,
+    titulo_pelicula: "Océano Profundo",
+    calificacion: 4,
+    texto: "Muy buena aunque un poco larga. El sonido se cortó unos minutos.",
+    fecha_resena: ISODate("2026-09-27T09:00:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["3D"]
+  },
+  {
+    id_venta: 11,
+    id_espectador: 10,
+    id_funcion: 5,
+    id_pelicula: 5,
+    titulo_pelicula: "Océano Profundo",
+    calificacion: 1,
+    texto: "Muy aburrida y encima se dañó el sonido. No la recomiendo.",
+    fecha_resena: ISODate("2026-09-27T11:30:00-05:00"),
+    estado: "PUBLICADA",
+    votos_utiles: 2
+  },
+  {
+    id_venta: 12,
+    id_espectador: 27,
+    id_funcion: 5,
+    id_pelicula: 5,
+    titulo_pelicula: "Océano Profundo",
+    calificacion: 5,
+    texto: "Las escenas debajo del agua en 3D son lo mejor de la película.",
+    fecha_resena: ISODate("2026-09-28T15:00:00-05:00"),
+    estado: "PUBLICADA"
+  },
+  {
+    id_venta: 13,
+    id_espectador: 21,
+    id_funcion: 6,
+    id_pelicula: 6,
+    titulo_pelicula: "Aventuras en el Bosque Encantado",
+    calificacion: 2,
+    texto: "A los niños les gustó, pero la sala estaba sucia cuando entramos.",
+    fecha_resena: ISODate("2026-10-04T17:00:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["aseo"],
+    respuesta_empresa: {
+      id_staff: 2,
+      texto: "Hola, Salomé. Tienes razón, ya reforzamos el aseo entre funciones.",
+      fecha: ISODate("2026-10-05T09:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 14,
+    id_espectador: 28,
+    id_funcion: 6,
+    id_pelicula: 6,
+    titulo_pelicula: "Aventuras en el Bosque Encantado",
+    calificacion: 4,
+    texto: "Buena para niños pequeños, el 3D les encantó.",
+    fecha_resena: ISODate("2026-10-04T18:20:00-05:00"),
+    estado: "PUBLICADA"
+  },
+  {
+    id_venta: 15,
+    id_espectador: 13,
+    id_funcion: 7,
+    id_pelicula: 7,
+    titulo_pelicula: "El Jardín de Cristal",
+    calificacion: 5,
+    texto: "La sala VIP es muy cómoda y la película es hermosa.",
+    fecha_resena: ISODate("2026-09-28T22:00:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["VIP"],
+    votos_utiles: 3
+  },
+  {
+    id_venta: 16,
+    id_espectador: 24,
+    id_funcion: 7,
+    id_pelicula: 7,
+    titulo_pelicula: "El Jardín de Cristal",
+    calificacion: 3,
+    texto: "La historia está bien, pero hacía mucho calor en la sala.",
+    fecha_resena: ISODate("2026-09-29T08:30:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Gracias, Alejandro. Ese día falló el aire acondicionado y ya se arregló.",
+      fecha: ISODate("2026-09-29T14:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 18,
+    id_espectador: 12,
+    id_funcion: 8,
+    id_pelicula: 8,
+    titulo_pelicula: "Tormenta Roja",
+    calificacion: 2,
+    texto: "Pedí comida a la silla y llegó cuando la película ya había empezado.",
+    fecha_resena: ISODate("2026-10-03T09:15:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Hola, Felipe. Te pedimos disculpas, por eso te dimos un bono de dulcería.",
+      fecha: ISODate("2026-10-03T12:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 19,
+    id_espectador: 29,
+    id_funcion: 8,
+    id_pelicula: 8,
+    titulo_pelicula: "Tormenta Roja",
+    calificacion: 5,
+    texto: "Mucha acción, de las mejores películas que he visto este año.",
+    fecha_resena: ISODate("2026-10-03T10:00:00-05:00"),
+    estado: "PUBLICADA",
+    votos_utiles: 5
+  },
+  {
+    id_venta: 20,
+    id_espectador: 9,
+    id_funcion: 8,
+    id_pelicula: 8,
+    titulo_pelicula: "Tormenta Roja",
+    calificacion: 4,
+    texto: "Buena película, pero dos personas estaban discutiendo atrás.",
+    fecha_resena: ISODate("2026-10-03T13:40:00-05:00"),
+    estado: "PUBLICADA"
+  },
+  {
+    id_venta: 21,
+    id_espectador: 23,
+    id_funcion: 9,
+    id_pelicula: 9,
+    titulo_pelicula: "Código Aurora",
+    calificacion: 4,
+    texto: "Muy buenos efectos en 3D, aunque el final se sintió apresurado.",
+    fecha_resena: ISODate("2026-10-04T10:20:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["efectos", "3D"],
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Gracias, Gabriela. Nos alegra que disfrutaras la experiencia en sala VIP.",
+      fecha: ISODate("2026-10-05T09:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 22,
+    id_espectador: 30,
+    id_funcion: 9,
+    id_pelicula: 9,
+    titulo_pelicula: "Código Aurora",
+    calificacion: 3,
+    texto: "Al principio el 3D se veía desenfocado, después lo arreglaron.",
+    fecha_resena: ISODate("2026-10-04T15:00:00-05:00"),
+    estado: "EN_REVISION"
+  },
+  {
+    id_venta: 23,
+    id_espectador: 4,
+    id_funcion: 10,
+    id_pelicula: 10,
+    titulo_pelicula: "Cenizas de Julio",
+    calificacion: 2,
+    texto: "Unas personas estaban haciendo ruido y nadie del cine les dijo nada.",
+    fecha_resena: ISODate("2026-09-30T08:00:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 2,
+      texto: "Gracias por avisarnos, Mateo. Vamos a pedir al personal que esté más pendiente.",
+      fecha: ISODate("2026-09-30T15:30:00-05:00")
+    }
+  },
+  {
+    id_venta: 24,
+    id_espectador: 25,
+    id_funcion: 10,
+    id_pelicula: 10,
+    titulo_pelicula: "Cenizas de Julio",
+    calificacion: 4,
+    texto: "Película muy emotiva. Sonó una alarma pero salimos rápido y todo salió bien.",
+    fecha_resena: ISODate("2026-09-30T19:00:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["drama"]
+  },
+  {
+    id_venta: 26,
+    id_espectador: 11,
+    id_funcion: 11,
+    id_pelicula: 11,
+    titulo_pelicula: "El Silencio del Valle",
+    calificacion: 2,
+    texto: "El proyector se apagó en la mitad y nadie explicó qué estaba pasando.",
+    fecha_resena: ISODate("2026-10-02T09:00:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 1,
+      texto: "Hola, Mariana. Fue una falla del proyector, por eso te dimos una boleta de cortesía.",
+      fecha: ISODate("2026-10-02T11:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 27,
+    id_espectador: 15,
+    id_funcion: 11,
+    id_pelicula: 11,
+    titulo_pelicula: "El Silencio del Valle",
+    calificacion: 1,
+    texto: "Pésimo todo, el que atendía la sala era un inútil.",
+    fecha_resena: ISODate("2026-10-02T10:30:00-05:00"),
+    estado: "OCULTA"
+  },
+  {
+    id_venta: 28,
+    id_espectador: 18,
+    id_funcion: 12,
+    id_pelicula: 12,
+    titulo_pelicula: "Mi Abuela la Hechicera",
+    calificacion: 5,
+    texto: "Muy divertida, la vi con mi abuela y nos encantó.",
+    fecha_resena: ISODate("2026-10-04T14:00:00-05:00"),
+    estado: "PUBLICADA",
+    votos_utiles: 2
+  },
+  {
+    id_venta: 29,
+    id_espectador: 26,
+    id_funcion: 12,
+    id_pelicula: 12,
+    titulo_pelicula: "Mi Abuela la Hechicera",
+    calificacion: 4,
+    texto: "Bonita para ver en familia. Lo malo es que en taquilla no recibían tarjeta.",
+    fecha_resena: ISODate("2026-10-04T15:30:00-05:00"),
+    estado: "PUBLICADA"
+  },
+  {
+    id_venta: 30,
+    id_espectador: 5,
+    id_funcion: 13,
+    id_pelicula: 13,
+    titulo_pelicula: "Rumbo a Marte",
+    calificacion: 3,
+    texto: "Buena película, pero el combo me llegó sin la bebida.",
+    fecha_resena: ISODate("2026-10-03T20:00:00-05:00"),
+    estado: "PUBLICADA",
+    respuesta_empresa: {
+      id_staff: 2,
+      texto: "Gracias, Isabella. Ya hablamos con dulcería para que no vuelva a pasar.",
+      fecha: ISODate("2026-10-04T09:00:00-05:00")
+    }
+  },
+  {
+    id_venta: 32,
+    id_espectador: 21,
+    id_funcion: 13,
+    id_pelicula: 13,
+    titulo_pelicula: "Rumbo a Marte",
+    calificacion: 5,
+    texto: "Me encantó, los efectos en 3D son muy buenos.",
+    fecha_resena: ISODate("2026-10-04T08:00:00-05:00"),
+    estado: "PUBLICADA",
+    etiquetas: ["3D", "efectos"]
+  },
+  {
+    id_venta: 33,
+    id_espectador: 17,
+    id_funcion: 14,
+    id_pelicula: 14,
+    titulo_pelicula: "Dragones del Alba",
+    calificacion: 4,
+    texto: "Los dragones en 3D se ven muy reales.",
+    fecha_resena: ISODate("2026-10-04T19:30:00-05:00"),
+    estado: "PUBLICADA",
+    votos_utiles: 1
+  },
+  {
+    id_venta: 34,
+    id_espectador: 32,
+    id_funcion: 14,
+    id_pelicula: 14,
+    titulo_pelicula: "Dragones del Alba",
+    calificacion: 1,
+    texto: "La función se retrasó casi 40 minutos por un daño del proyector.",
+    fecha_resena: ISODate("2026-10-04T20:00:00-05:00"),
+    estado: "EN_REVISION"
+  }
+]);
+
+print("resenas_peliculas: " + db.resenas_peliculas.countDocuments({}) + " documentos");
 
 
 // =====================================================================

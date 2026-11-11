@@ -1,6 +1,6 @@
 -- PROCEDIMIENTO 1 (cálculo)
 -- Calcula cuántas boletas se han vendido en una función,
--- cuántas sillas quedan libres y cuánto dinero se ha
+-- cuántas boletas quedan disponibles según la capacidad de la sala y cuánto dinero se ha
 -- recaudado. Solo cuenta las ventas PAGADAS.
 
 CREATE OR REPLACE PROCEDURE sp_calcular_ocupacion(
@@ -34,7 +34,7 @@ BEGIN
 
     p_disponibles := v_capacidad - p_vendidas;
 
-    RAISE NOTICE 'Función %: % boletas vendidas, % sillas libres, recaudo $%.',
+    RAISE NOTICE 'Función %: % boletas vendidas, % boletas disponibles (capacidad de la sala), recaudo $%.',
         p_id_funcion, p_vendidas, p_disponibles, p_recaudo;
 
 EXCEPTION
@@ -138,7 +138,7 @@ $$;
 --   - el espectador tenga la edad que pide la clasificación,
 --   - el tipo de boleta exista y esté activo,
 --   - el staff exista y esté activo,
---   - haya sillas suficientes.
+--   - no se supere la capacidad de la sala.
 -- El precio se toma de Tipos_Boleta.
 
 CREATE OR REPLACE PROCEDURE sp_registrar_venta(
@@ -228,7 +228,7 @@ BEGIN
         RAISE EXCEPTION 'El staff % está inactivo.', p_id_staff;
     END IF;
 
-    -- Sillas disponibles
+    -- Boletas disponibles según la capacidad de la sala
     SELECT COALESCE(SUM(cantidad), 0)
     INTO v_vendidas
     FROM Ventas
@@ -236,7 +236,7 @@ BEGIN
       AND estado = 'PAGADA';
 
     IF v_vendidas + p_cantidad > v_capacidad THEN
-        RAISE EXCEPTION 'No hay sillas suficientes. Quedan % sillas.', v_capacidad - v_vendidas;
+        RAISE EXCEPTION 'No hay cupo suficiente en la sala. Quedan % boletas disponibles.', v_capacidad - v_vendidas;
     END IF;
 
     -- Registrar la venta

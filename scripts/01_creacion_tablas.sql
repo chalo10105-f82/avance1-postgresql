@@ -136,3 +136,18 @@ CREATE TABLE ventas (
     CONSTRAINT fk_ventas_staff     FOREIGN KEY (id_staff)       REFERENCES staff (id_staff)
                                    ON DELETE RESTRICT
 );
+
+
+-- =====================================================================
+-- ÍNDICES SOBRE LLAVES FORÁNEAS (corrección del Avance 1)
+-- PostgreSQL no indexa las FK automáticamente; estas columnas se usan
+-- en cada JOIN, por eso se indexan para no recorrer toda la tabla.
+-- =====================================================================
+CREATE INDEX idx_ventas_funcion        ON ventas (id_funcion);
+CREATE INDEX idx_ventas_espect         ON ventas (id_espectador);
+CREATE INDEX idx_ventas_staff          ON ventas (id_staff);
+CREATE INDEX idx_ventas_tipo           ON ventas (id_tipo_boleta);
+CREATE INDEX idx_funciones_sala        ON funciones (id_sala, fecha_hora_inicio);
+CREATE INDEX idx_funciones_actor       ON funciones (id_actor_director);
+CREATE INDEX idx_staff_sala            ON staff (id_sala);
+CREATE INDEX idx_contratos_staff       ON contratos (id_staff);

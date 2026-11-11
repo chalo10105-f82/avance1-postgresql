@@ -69,8 +69,8 @@ SELECT
     f.formato,
     s.nombre,
     COALESCE(SUM(v.cantidad * v.precio_unitario), 0) AS recaudo_total,
-    RANK() OVER (PARTITION BY f.formato ORDER BY SUM(v.cantidad * v.precio_unitario) DESC) AS ranking_formato,
-    ROW_NUMBER() OVER (ORDER BY SUM(v.cantidad * v.precio_unitario) DESC) AS ranking_general
+    RANK() OVER (PARTITION BY f.formato ORDER BY SUM(v.cantidad * v.precio_unitario) DESC NULLS LAST) AS ranking_formato,
+    ROW_NUMBER() OVER (ORDER BY SUM(v.cantidad * v.precio_unitario) DESC NULLS LAST) AS ranking_general
 FROM funciones f
 INNER JOIN salas s ON f.id_sala = s.id_sala
 LEFT JOIN ventas v ON f.id_funcion = v.id_funcion AND v.estado = 'PAGADA'

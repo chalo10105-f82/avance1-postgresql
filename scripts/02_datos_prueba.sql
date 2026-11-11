@@ -1,3 +1,8 @@
+BEGIN;
+
+-- Vacía las tablas y reinicia los id para poder ejecutar el script varias veces
+TRUNCATE ventas, contratos, funciones, staff, espectadores, actores_directores, tipos_boleta, salas
+    RESTART IDENTITY CASCADE;
 
 -- 1. Salas (5)
 INSERT INTO salas (nombre, capacidad, tipo_sala, estado) VALUES

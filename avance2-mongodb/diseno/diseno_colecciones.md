@@ -29,7 +29,7 @@ PostgreSQL (Avance 1) y por qué cada dato va embebido o referenciado.
 
 | Pregunta | Decisión |
 | --- | --- |
-| ¿Qué queda en PostgreSQL? | Lo transaccional y con reglas fuertes: salas, funciones, ventas, espectadores, staff, contratos, actores/directores. Necesita ACID (no vender dos veces la misma silla, no cobrar a medias). |
+| ¿Qué queda en PostgreSQL? | Lo transaccional y con reglas fuertes: salas, funciones, ventas, espectadores, staff, contratos, actores/directores. Necesita ACID (no vender más boletas que la capacidad de la sala, no cobrar a medias). |
 | ¿Qué va a MongoDB? | Información de estructura variable, texto libre o alto volumen que no participa en transacciones de dinero: fichas técnicas, requisitos de proyección, reseñas e incidentes. |
 | ¿Cuándo **embebemos**? | Cuando el dato hijo no tiene sentido sin el padre, son pocos (decenas como máximo), casi siempre se leen juntos y casi no cambian. |
 | ¿Cuándo **referenciamos**? | Cuando el dato tiene vida propia (se consulta solo), son muchos (cientos o miles), cambia seguido, o ya existe en PostgreSQL (fuente de verdad). Guardamos solo el identificador compartido. |

@@ -1,0 +1,8 @@
+# API (este módulo)
+fastapi>=0.110
+uvicorn>=0.29
+# Código de integración del equipo (mismas dependencias que script-integracion/requirements.txt)
+psycopg2-binary
+pymongo
+dnspython
+python-dotenv

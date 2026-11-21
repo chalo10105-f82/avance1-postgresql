@@ -1,0 +1,1169 @@
+{
+  "info": {
+    "name": "Bosque Cinema · API de integración PostgreSQL + MongoDB",
+    "description": "Expone los casos de uso y la transacción cruzada del script de integración, con casos felices y de error.\n\nVariable `baseUrl` (por defecto http://localhost:8000). Con el Collection Runner cada petición ejecuta sus pruebas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Estado",
+      "description": "Comprueba que la API y los dos motores responden.",
+      "item": [
+        {
+          "name": "Salud de los motores",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Ambos motores ok\", function () { const j = pm.response.json(); pm.expect(j.postgresql).to.eql(\"ok\"); pm.expect(j.mongodb).to.eql(\"ok\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/salud",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salud"
+              ]
+            },
+            "description": "200 si PostgreSQL y MongoDB responden. Si no, 503 (conexión caída) o 500 (falta el .env)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Caso 1 · Función completa",
+      "description": "PostgreSQL (función, ventas) + MongoDB (requisitos, reseñas, incidentes).",
+      "item": [
+        {
+          "name": "Función 5",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Trae las tres fuentes\", function () { const j = pm.response.json(); pm.expect(j.funcion.id_funcion).to.eql(5); pm.expect(j.ventas_postgresql).to.be.an(\"object\"); pm.expect(j.requisitos_mongodb).to.be.an(\"object\"); pm.expect(j.resenas_mongodb).to.be.an(\"object\"); pm.expect(j.incidentes_mongodb).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/funciones/5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "funciones",
+                "5"
+              ]
+            },
+            "description": "Demo del equipo: la función 5 tiene el incidente INC-2026-002."
+          }
+        },
+        {
+          "name": "ERROR · id no numérico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"El error trae el código PARAMETRO_INVALIDO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"PARAMETRO_INVALIDO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/funciones/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "funciones",
+                "abc"
+              ]
+            },
+            "description": "El id debe ser un entero positivo (lo valida validar_id del script)."
+          }
+        },
+        {
+          "name": "ERROR · id en cero",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"El error trae el código PARAMETRO_INVALIDO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"PARAMETRO_INVALIDO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/funciones/0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "funciones",
+                "0"
+              ]
+            },
+            "description": "Cero no es un id válido."
+          }
+        },
+        {
+          "name": "ERROR · función inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"El error trae el código NO_ENCONTRADO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"NO_ENCONTRADO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/funciones/9999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "funciones",
+                "9999"
+              ]
+            },
+            "description": "El id no existe en PostgreSQL."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Caso 2 · Película con requisitos",
+      "description": "PostgreSQL (película, funciones) + MongoDB (ficha técnica y requisitos).",
+      "item": [
+        {
+          "name": "Película 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Trae ficha, resumen y funciones\", function () { const j = pm.response.json(); pm.expect(j.ficha_mongodb).to.be.an(\"object\"); pm.expect(j.resumen).to.be.an(\"object\"); pm.expect(j.funciones).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/peliculas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "peliculas",
+                "1"
+              ]
+            },
+            "description": "Película con sus funciones y requisitos de proyección."
+          }
+        },
+        {
+          "name": "ERROR · id inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"El error trae el código PARAMETRO_INVALIDO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"PARAMETRO_INVALIDO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/peliculas/x",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "peliculas",
+                "x"
+              ]
+            },
+            "description": "id no numérico."
+          }
+        },
+        {
+          "name": "ERROR · película inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"El error trae el código NO_ENCONTRADO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"NO_ENCONTRADO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/peliculas/9999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "peliculas",
+                "9999"
+              ]
+            },
+            "description": "No existe en PostgreSQL."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Caso 3 · Ventas vs incidentes por sala",
+      "description": "Boletas e ingresos (PostgreSQL) cruzados con incidentes (MongoDB).",
+      "item": [
+        {
+          "name": "Todas las salas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Lista de salas y sala más crítica\", function () { const j = pm.response.json(); pm.expect(j.salas.length).to.be.above(1); pm.expect(j.sala_mas_critica).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/salas/incidentes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salas",
+                "incidentes"
+              ]
+            },
+            "description": "Sin id_sala devuelve todas y marca la sala más crítica."
+          }
+        },
+        {
+          "name": "Una sala",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Una sola sala\", function () { const j = pm.response.json(); pm.expect(j.salas.length).to.eql(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/salas/incidentes?id_sala=4",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salas",
+                "incidentes"
+              ],
+              "query": [
+                {
+                  "key": "id_sala",
+                  "value": "4"
+                }
+              ]
+            },
+            "description": "Filtra por id_sala."
+          }
+        },
+        {
+          "name": "ERROR · id_sala inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"El error trae el código PARAMETRO_INVALIDO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"PARAMETRO_INVALIDO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/salas/incidentes?id_sala=zz",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salas",
+                "incidentes"
+              ],
+              "query": [
+                {
+                  "key": "id_sala",
+                  "value": "zz"
+                }
+              ]
+            },
+            "description": "id_sala no numérico."
+          }
+        },
+        {
+          "name": "ERROR · sala inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"El error trae el código NO_ENCONTRADO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"NO_ENCONTRADO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/salas/incidentes?id_sala=9999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salas",
+                "incidentes"
+              ],
+              "query": [
+                {
+                  "key": "id_sala",
+                  "value": "9999"
+                }
+              ]
+            },
+            "description": "La sala no existe."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Caso 4 · Historial del espectador",
+      "description": "Compras (PostgreSQL) + reseñas y quejas (MongoDB).",
+      "item": [
+        {
+          "name": "Espectador 21",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Trae resumen y compras\", function () { const j = pm.response.json(); pm.expect(j.espectador.id_espectador).to.eql(21); pm.expect(j.resumen).to.be.an(\"object\"); pm.expect(j.compras).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/espectadores/21/historial",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "espectadores",
+                "21",
+                "historial"
+              ]
+            },
+            "description": "Demo del equipo: tiene la queja INC-2026-015."
+          }
+        },
+        {
+          "name": "ERROR · id inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"El error trae el código PARAMETRO_INVALIDO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"PARAMETRO_INVALIDO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/espectadores/1.5/historial",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "espectadores",
+                "1.5",
+                "historial"
+              ]
+            },
+            "description": "id no entero."
+          }
+        },
+        {
+          "name": "ERROR · espectador inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"El error trae el código NO_ENCONTRADO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"NO_ENCONTRADO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/espectadores/9999/historial",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "espectadores",
+                "9999",
+                "historial"
+              ]
+            },
+            "description": "No existe."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Transacción cruzada · Devolución de venta",
+      "description": "Anula la venta en PostgreSQL y crea la queja con reembolso en MongoDB. Ejecutar en orden. Modifica datos: para repetir la demo hay que volver a cargar los datos de prueba.",
+      "item": [
+        {
+          "name": "Devolver venta 31",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Ambos motores confirmados\", function () { const j = pm.response.json(); pm.expect(j.postgresql.estado).to.eql(\"ANULADA\"); pm.expect(j.mongodb.codigo).to.match(/^INC-\\d{4}-\\d{3}$/); pm.expect(j.mongodb.compensacion.tipo).to.eql(\"REEMBOLSO\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/31/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "31",
+                "devolucion"
+              ]
+            },
+            "description": "Camino feliz: venta ANULADA en PostgreSQL y reporte INC-AAAA-NNN en MongoDB.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 3,\n  \"motivo\": \"Pantalla sin imagen durante la función.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERROR · venta ya anulada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 409\", function () { pm.response.to.have.status(409); });",
+                  "pm.test(\"El error trae el código REGLA_DE_NEGOCIO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"REGLA_DE_NEGOCIO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/31/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "31",
+                "devolucion"
+              ]
+            },
+            "description": "Repetir la devolución viola una regla de negocio.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 3,\n  \"motivo\": \"Pantalla sin imagen durante la función.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERROR · staff sin permiso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 409\", function () { pm.response.to.have.status(409); });",
+                  "pm.test(\"El error trae el código REGLA_DE_NEGOCIO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"REGLA_DE_NEGOCIO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/32/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "32",
+                "devolucion"
+              ]
+            },
+            "description": "El staff 24 es proyeccionista: solo TAQUILLERO o ADMINISTRADOR pueden devolver.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 24,\n  \"motivo\": \"Pantalla sin imagen durante la función.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERROR · venta inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"El error trae el código NO_ENCONTRADO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"NO_ENCONTRADO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/9999/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "9999",
+                "devolucion"
+              ]
+            },
+            "description": "La venta no existe.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 3,\n  \"motivo\": \"Pantalla sin imagen durante la función.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERROR · staff inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"El error trae el código NO_ENCONTRADO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"NO_ENCONTRADO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/32/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "32",
+                "devolucion"
+              ]
+            },
+            "description": "El staff no existe.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 9999,\n  \"motivo\": \"Pantalla sin imagen durante la función.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERROR · motivo muy corto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"El error trae el código PARAMETRO_INVALIDO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"PARAMETRO_INVALIDO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/32/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "32",
+                "devolucion"
+              ]
+            },
+            "description": "El motivo necesita al menos 5 caracteres.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 3,\n  \"motivo\": \"no\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERROR · id de venta no numérico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"El error trae el código PARAMETRO_INVALIDO\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"PARAMETRO_INVALIDO\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/abc/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "abc",
+                "devolucion"
+              ]
+            },
+            "description": "id inválido.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 3,\n  \"motivo\": \"Pantalla sin imagen durante la función.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERROR · falta el motivo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 422\", function () { pm.response.to.have.status(422); });",
+                  "pm.test(\"El error trae el código DATOS_INVALIDOS\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"DATOS_INVALIDOS\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/32/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "32",
+                "devolucion"
+              ]
+            },
+            "description": "Falta un campo obligatorio del cuerpo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERROR · tipo de dato incorrecto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 422\", function () { pm.response.to.have.status(422); });",
+                  "pm.test(\"El error trae el código DATOS_INVALIDOS\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"DATOS_INVALIDOS\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/32/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "32",
+                "devolucion"
+              ]
+            },
+            "description": "id_staff debe ser un número.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": \"tres\",\n  \"motivo\": \"abcdef\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERROR · JSON mal formado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 422\", function () { pm.response.to.have.status(422); });",
+                  "pm.test(\"El error trae el código DATOS_INVALIDOS\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"DATOS_INVALIDOS\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/32/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "32",
+                "devolucion"
+              ]
+            },
+            "description": "El cuerpo no es JSON válido.",
+            "body": {
+              "mode": "raw",
+              "raw": "{id_staff: 3,",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERROR · simular inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 422\", function () { pm.response.to.have.status(422); });",
+                  "pm.test(\"El error trae el código DATOS_INVALIDOS\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"DATOS_INVALIDOS\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/32/devolucion?simular=otro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "32",
+                "devolucion"
+              ],
+              "query": [
+                {
+                  "key": "simular",
+                  "value": "otro"
+                }
+              ]
+            },
+            "description": "simular solo admite mongo o postgres.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 3,\n  \"motivo\": \"Pantalla sin imagen durante la función.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DEMO · falla simulada en PostgreSQL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 503\", function () { pm.response.to.have.status(503); });",
+                  "pm.test(\"El error trae el código TRANSACCION_REVERTIDA\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"TRANSACCION_REVERTIDA\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/32/devolucion?simular=postgres",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "32",
+                "devolucion"
+              ],
+              "query": [
+                {
+                  "key": "simular",
+                  "value": "postgres"
+                }
+              ]
+            },
+            "description": "PostgreSQL falla antes del COMMIT: se hace ROLLBACK y se borra el reporte de MongoDB (compensación). La venta 32 sigue PAGADA.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 3,\n  \"motivo\": \"Pantalla sin imagen durante la función.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DEMO · falla simulada en MongoDB",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 503\", function () { pm.response.to.have.status(503); });",
+                  "pm.test(\"El error trae el código TRANSACCION_REVERTIDA\", function () { const j = pm.response.json(); pm.expect(j.error.codigo).to.eql(\"TRANSACCION_REVERTIDA\"); pm.expect(j.error.mensaje).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/33/devolucion?simular=mongo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "33",
+                "devolucion"
+              ],
+              "query": [
+                {
+                  "key": "simular",
+                  "value": "mongo"
+                }
+              ]
+            },
+            "description": "MongoDB rechaza el documento ($jsonSchema): ROLLBACK en PostgreSQL. La venta 33 sigue PAGADA.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 3,\n  \"motivo\": \"Pantalla sin imagen durante la función.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Devolver venta 32 (tras la simulación)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Venta anulada\", function () { const j = pm.response.json(); pm.expect(j.postgresql.estado).to.eql(\"ANULADA\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas/32/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ventas",
+                "32",
+                "devolucion"
+              ]
+            },
+            "description": "Después de la falla simulada la venta seguía PAGADA, así que ahora sí se puede devolver.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_staff\": 3,\n  \"motivo\": \"Pantalla sin imagen durante la función.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

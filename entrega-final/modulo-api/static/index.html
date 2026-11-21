@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bosque Cinema · Demo de integración</title>
+<style>
+  :root { --verde:#1f4e3d; --fondo:#f6f7f5; --borde:#d7dbd6; --ok:#1d7a4a; --mal:#b3261e; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial,sans-serif; background:var(--fondo); color:#1c1f1d; }
+  header { background:var(--verde); color:#fff; padding:18px 24px; }
+  header h1 { margin:0; font-size:20px; } header p { margin:2px 0 0; opacity:.85; font-size:13px; }
+  main { max-width:1100px; margin:0 auto; padding:20px 24px 40px; display:grid; gap:16px; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  @media (max-width:860px){ main{grid-template-columns:1fr;} }
+  section { background:#fff; border:1px solid var(--borde); border-radius:8px; padding:16px; }
+  section.ancha { grid-column:1/-1; }
+  h2 { margin:0 0 4px; font-size:16px; color:var(--verde); } p.desc { margin:0 0 12px; color:#555; font-size:13px; }
+  label { display:block; font-size:12px; color:#555; margin:8px 0 2px; }
+  select,input,textarea,button { font:inherit; padding:7px 9px; border:1px solid var(--borde); border-radius:6px; background:#fff; }
+  textarea { width:100%; min-height:70px; } input,select { min-width:0; }
+  .fila { display:flex; gap:8px; flex-wrap:wrap; align-items:end; }
+  button { background:var(--verde); color:#fff; border-color:var(--verde); cursor:pointer; } button:hover { filter:brightness(1.15); }
+  button.secundario { background:#fff; color:var(--verde); } button:disabled { opacity:.5; cursor:wait; }
+  #estado-motores span { display:inline-block; margin-right:12px; font-weight:600; } .ok{color:var(--ok);} .mal{color:var(--mal);}
+  #resultado { margin:0; background:#101512; color:#d6f5e3; padding:14px; border-radius:6px; overflow:auto; max-height:520px; font:12.5px/1.45 ui-monospace,Menlo,Consolas,monospace; white-space:pre-wrap; }
+  #cabecera-resultado { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px; }
+  .badge { padding:2px 9px; border-radius:999px; color:#fff; font-weight:700; font-size:12px; } .b-ok{background:var(--ok);} .b-mal{background:var(--mal);}
+  small.nota { color:#777; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Bosque Cinema · Demo de integración PostgreSQL + MongoDB</h1>
+  <p>Cada botón llama a la API, que a su vez usa el script de integración del equipo y muestra la respuesta tal cual. Documentación completa en <a href="/docs" style="color:#bfe8d1">/docs</a>.</p>
+</header>
+<main>
+  <section class="ancha">
+    <h2>Estado de los motores</h2>
+    <p class="desc">Comprueba PostgreSQL (Neon) y MongoDB (Atlas).</p>
+    <div class="fila"><button onclick="llamar('GET','/salud')">Probar conexión</button></div>
+  </section>
+
+  <section>
+    <h2>Caso 1 · Función completa</h2>
+    <p class="desc">Función y ventas (PostgreSQL) + requisitos, reseñas e incidentes (MongoDB).</p>
+    <label for="c1">Id de la función</label>
+    <div class="fila"><input id="c1" value="5" style="width:110px"><button onclick="llamar('GET','/funciones/'+enc('c1'))">Consultar</button></div>
+  </section>
+
+  <section>
+    <h2>Caso 2 · Película con requisitos</h2>
+    <p class="desc">Película y funciones (PostgreSQL) + ficha y requisitos (MongoDB).</p>
+    <label for="c2">Id de la película</label>
+    <div class="fila"><input id="c2" value="1" style="width:110px"><button onclick="llamar('GET','/peliculas/'+enc('c2'))">Consultar</button></div>
+  </section>
+
+  <section>
+    <h2>Caso 3 · Ventas vs incidentes por sala</h2>
+    <p class="desc">Boletas e ingresos (PostgreSQL) cruzados con incidentes (MongoDB). Vacío = todas las salas.</p>
+    <label for="c3">Id de la sala (opcional)</label>
+    <div class="fila"><input id="c3" value="" placeholder="todas" style="width:110px"><button onclick="llamar('GET','/salas/incidentes'+(v('c3')?'?id_sala='+enc('c3'):''))">Consultar</button></div>
+  </section>
+
+  <section>
+    <h2>Caso 4 · Historial del espectador</h2>
+    <p class="desc">Compras (PostgreSQL) + reseñas y quejas (MongoDB).</p>
+    <label for="c4">Id del espectador</label>
+    <div class="fila"><input id="c4" value="21" style="width:110px"><button onclick="llamar('GET','/espectadores/'+enc('c4')+'/historial')">Consultar</button></div>
+  </section>
+
+  <section class="ancha">
+    <h2>Transacción entre motores · Devolución de una venta por queja</h2>
+    <p class="desc">La venta pasa a ANULADA en PostgreSQL y se crea la queja con el reembolso en MongoDB. Si un motor falla, el otro se deshace. <b>Modifica datos</b> (venta de demo: 31, 32 o 33; cada una solo se puede devolver una vez).</p>
+    <div class="fila">
+      <div><label for="venta">Id de la venta</label><input id="venta" value="31" style="width:110px"></div>
+      <div><label for="staff">Id del staff (taquilla/admin)</label><input id="staff" value="3" style="width:110px"></div>
+      <div><label for="sim">Simular falla (demo)</label>
+        <select id="sim"><option value="">Ninguna (normal)</option><option value="mongo">Falla en MongoDB → ROLLBACK</option><option value="postgres">Falla en PostgreSQL → compensación</option></select></div>
+    </div>
+    <label for="motivo">Motivo</label>
+    <textarea id="motivo">Pantalla sin imagen durante la función.</textarea>
+    <div class="fila"><button onclick="devolver()">Devolver venta</button>
+      <small class="nota">Prueba también un id inexistente (9999), una venta ya anulada o un motivo de menos de 5 letras para ver los errores.</small></div>
+  </section>
+
+  <section class="ancha">
+    <div id="cabecera-resultado"><strong>Respuesta</strong><span id="estado-http"></span></div>
+    <pre id="resultado">Aún no se ha hecho ninguna consulta.</pre>
+  </section>
+</main>
+<script>
+const v = id => document.getElementById(id).value.trim();
+const enc = id => encodeURIComponent(v(id));
+
+async function llamar(metodo, ruta, cuerpo) {
+  const botones = document.querySelectorAll('button'); botones.forEach(b => b.disabled = true);
+  const salida = document.getElementById('resultado'), etiqueta = document.getElementById('estado-http');
+  try {
+    const r = await fetch(ruta, { method: metodo, headers: cuerpo ? {'Content-Type':'application/json'} : {}, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
+    const texto = await r.text(); let datos; try { datos = JSON.parse(texto); } catch { datos = texto; }
+    salida.textContent = metodo + ' ' + ruta + '\n\n' + (typeof datos === 'string' ? datos : JSON.stringify(datos, null, 2));
+    etiqueta.innerHTML = '<span class="badge ' + (r.ok ? 'b-ok' : 'b-mal') + '">HTTP ' + r.status + '</span>';
+  } catch (e) {
+    salida.textContent = 'No se pudo hablar con la API. ¿Está corriendo el servidor?\n' + e;
+    etiqueta.innerHTML = '<span class="badge b-mal">sin conexión</span>';
+  } finally { botones.forEach(b => b.disabled = false); }
+}
+function devolver() {
+  const sim = v('sim');
+  const id_staff = v('staff') === '' ? undefined : Number(v('staff'));
+  llamar('POST', '/ventas/' + enc('venta') + '/devolucion' + (sim ? '?simular=' + sim : ''),
+         { id_staff: Number.isNaN(id_staff) ? v('staff') : id_staff, motivo: document.getElementById('motivo').value });
+}
+</script>
+</body>
+</html>
